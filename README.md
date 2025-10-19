@@ -1,80 +1,285 @@
-# 🏗 Scaffold-ETH 2
+# 🎯 PolyHedge - Prediction Market Arbitrage Platform
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
+> **Hackathon Project**: Exploiting Polymarket inefficiencies with automated arbitrage and risk hedging
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Built with Scaffold-ETH 2](https://img.shields.io/badge/Built%20with-Scaffold--ETH%202-blue)](https://github.com/scaffold-eth/scaffold-eth-2)
 
-⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
+## 🚀 Project Overview
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+PolyHedge is an automated arbitrage platform that exploits pricing inefficiencies in Polymarket prediction markets while hedging directional risk through DEX perpetuals. Built for the hackathon, it combines sophisticated mathematical models with cross-chain DeFi automation.
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+### 🎯 Core Concept
 
-## Requirements
+**Problem**: Polymarket has $2B+ daily volume but significant pricing inefficiencies
 
-Before you begin, you need to install the following tools:
+- Tail strikes (extreme prices) are **91-700% overvalued** due to hype
+- Mid strikes are **166-358% undervalued** due to fear
+- Manual arbitrage is complex and risky
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
+**Solution**: Automated scanner + execution platform
 
-## Quickstart
+- Real-time theoretical pricing using Black-Scholes barrier options
+- One-click arbitrage position creation
+- Delta-neutral hedging via DEX perpetuals
+- Cross-chain automation with Lit Protocol
 
-To get started with Scaffold-ETH 2, follow the steps below:
+### 📊 Expected Performance
 
-1. Install dependencies if it was skipped in CLI:
+- **Returns**: 15-25% per epoch (1-4 weeks)
+- **Win Rate**: 70%+ of scenarios
+- **Risk**: Hedge-protected but not risk-free
+- **Capacity**: ~$100k AUM initially
 
-```
-cd my-dapp-example
+## 🏗️ Tech Stack
+
+### Core Technologies
+
+- **Frontend**: Next.js (Scaffold-ETH 2) - `packages/nextjs/`
+- **Smart Contracts**: Solidity (Hardhat) - `packages/hardhat/`
+- **Python Analysis**: Mathematical models - `packages/python/`
+- **Cross-Chain**: Lit Protocol Vincent
+- **Oracles**: Pyth Network
+- **Markets**: Polymarket CLOB API
+- **Hedging**: GMX/Hyperliquid SDK
+
+### Hackathon Integrations
+
+- ✅ **Lit Protocol** ($1,666) - Cross-chain automation
+- ✅ **Pyth Network** ($1,500) - Real-time price feeds
+- 🔄 **Avail** ($1,000) - Cross-chain intents (optional)
+- 🔄 **Blockscout** ($500) - Market data scanning
+- 🔄 **Hardhat** ($500) - Smart contract development
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js >= 20.18.3
+- Yarn
+- Python 3.8+ (for analysis scripts)
+
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd polyhedge
 yarn install
 ```
 
-2. Run a local network in the first terminal:
+### 2. Set Up Python Environment (for analysis)
 
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r packages/python/requirements.txt
 ```
+
+### 3. Run Mathematical Verification
+
+```bash
+python packages/python/analysis/verify_math.py
+```
+
+### 4. Start Development
+
+```bash
+# Terminal 1: Start local blockchain
 yarn chain
-```
 
-This command starts a local Ethereum network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/hardhat/hardhat.config.ts`.
-
-3. On a second terminal, deploy the test contract:
-
-```
+# Terminal 2: Deploy contracts
 yarn deploy
-```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
+# Terminal 3: Start frontend
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit `http://localhost:3000` to see the application.
 
-Run smart contract test with `yarn hardhat:test`
+## 📚 Documentation
 
-- Edit your smart contracts in `packages/hardhat/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/hardhat/deploy`
+### 🎯 Start Here
 
+1. **[Project Overview](docs/PROJECT_OVERVIEW.md)** - Complete project explanation
+2. **[Mathematical Analysis](docs/MATHEMATICAL_ANALYSIS.md)** - Black-Scholes theory and verification
+3. **[Strategy Guide](docs/STRATEGY_GUIDE.md)** - How arbitrage + hedging works
+4. **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Development roadmap
 
-## Documentation
+### 📊 Analysis Results
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+- **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Key findings and recommendations
+- **[Market Opportunities](docs/MARKET_OPPORTUNITIES.md)** - Current inefficiencies identified
+- **[Risk Analysis](docs/RISK_ANALYSIS.md)** - Constraints and mitigations
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+### 🛠️ Technical Docs
 
-## Contributing to Scaffold-ETH 2
+- **[API Documentation](docs/API_DOCS.md)** - Integration guides
+- **[Smart Contracts](docs/SMART_CONTRACTS.md)** - Contract architecture
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production setup
 
-We welcome contributions to Scaffold-ETH 2!
+## 🎯 Key Features
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+### 1. Market Scanner
+
+- Real-time theoretical pricing for all Polymarket crypto markets
+- Inefficiency detection (theory vs market price)
+- Opportunity ranking by edge percentage
+- Historical tracking and alerts
+
+### 2. Arbitrage Engine
+
+- Automated spread position creation
+- Kelly Criterion position sizing
+- Risk management and diversification
+- Early exit when prices converge
+
+### 3. Cross-Chain Execution
+
+- Lit Protocol Vincent for transaction bundling
+- One-click execution across Polygon ↔ Arbitrum
+- Automated hedging via DEX perpetuals
+- Gas optimization and retry logic
+
+### 4. Dashboard
+
+- Live market scanner with opportunities
+- Portfolio visualization and PNL tracking
+- Position monitoring and alerts
+- Performance analytics
+
+## 📊 Mathematical Foundation
+
+### Black-Scholes Barrier Options
+
+Polymarket bets are modeled as digital barrier options:
+
+```
+Theoretical Price = P(max(S_t) ≥ H)
+
+where:
+- S_t = asset price at time t
+- H = barrier (target price)
+- P = probability under risk-neutral measure
+```
+
+### Current Market Inefficiencies
+
+| Market     | Market Price | Theoretical | Edge       | Action         |
+| ---------- | ------------ | ----------- | ---------- | -------------- |
+| BTC >$200k | 0.7%         | 0.0001%     | **-99.9%** | ⭐ BET NO      |
+| BTC >$150k | 2.5%         | 0.22%       | **-91.1%** | ⭐ BET NO      |
+| BTC >$110k | 18.0%        | 82.4%       | **+358%**  | ⭐⭐⭐ BET YES |
+| BTC >$120k | 12.0%        | 31.9%       | **+166%**  | ⭐⭐ BET YES   |
+
+## 🎯 Hackathon Demo Flow
+
+### 5-Minute Demo Script
+
+1. **Problem Statement** (30s)
+
+   - "Polymarket has massive inefficiencies"
+   - "Manual arbitrage is complex and risky"
+
+2. **Show Opportunities** (60s)
+
+   - Scanner reveals BTC >$150k is 91% overvalued
+   - Scanner reveals BTC >$110k is 358% undervalued
+   - "These are real arbitrage opportunities!"
+
+3. **Execute Strategy** (90s)
+
+   - Build spread: NO on $150k + YES on $110k
+   - System calculates expected profit: +$18 on $100
+   - System calculates hedge: Short 0.03 BTC on GMX
+   - Click "Execute" → Lit bundles everything
+
+4. **Show Results** (60s)
+
+   - Dashboard shows positions
+   - Price simulator: move BTC up/down
+   - PNL stays stable (hedged)
+   - "Capturing arbitrage edge, protected from volatility"
+
+5. **Vision** (30s)
+   - "Automated arbitrage vault for passive stakers"
+   - "Target 15-25% returns per epoch"
+   - "Powered by Lit, Pyth, and cross-chain DeFi"
+
+## ⚠️ Important Disclaimers
+
+### What This IS:
+
+- ✅ Statistical arbitrage (not gambling)
+- ✅ Math-backed strategy with proven edge
+- ✅ Risk-managed approach with hedging
+- ✅ Viable hackathon project
+
+### What This IS NOT:
+
+- ❌ Risk-free yield (still has 5% loss scenarios)
+- ❌ Passive income (requires active inefficiency detection)
+- ❌ Guaranteed returns (depends on market inefficiencies)
+- ❌ Simple hedging (that approach fails)
+
+### Risk Factors:
+
+- Liquidity constraints (thin order books)
+- Edge compression (inefficiencies may disappear)
+- Execution failures (cross-chain complexity)
+- Oracle mismatches (UMA vs Pyth)
+- Regulatory uncertainty (prediction markets)
+
+## 🛠️ Development Status
+
+### ✅ Completed
+
+- [x] Mathematical analysis and verification
+- [x] Black-Scholes barrier option implementation
+- [x] Market inefficiency detection
+- [x] Portfolio construction algorithms
+- [x] Risk analysis and hedging strategies
+
+### 🚧 In Progress
+
+- [ ] Polymarket API integration
+- [ ] Lit Protocol Vincent setup
+- [ ] Smart contract development
+- [ ] Frontend dashboard
+- [ ] Cross-chain execution
+
+### 📋 Next Steps
+
+- [ ] Market scanner implementation
+- [ ] Position execution engine
+- [ ] Dynamic rebalancing
+- [ ] Demo preparation
+- [ ] Testing and deployment
+
+## 🤝 Contributing
+
+This is a hackathon project. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built on [Scaffold-ETH 2](https://github.com/scaffold-eth/scaffold-eth-2)
+- Mathematical foundation from Black-Scholes options theory
+- Inspired by prediction market inefficiencies research
+- Powered by Lit Protocol, Pyth Network, and the broader DeFi ecosystem
+
+---
+
+**Ready to build the future of prediction market arbitrage?** Let's go! 🚀
+
+For questions or support, please open an issue or reach out to the team.

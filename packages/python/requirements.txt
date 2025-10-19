@@ -1,0 +1,31 @@
+# Core dependencies for mathematical analysis and verification
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# Optional: For enhanced plotting and analysis
+seaborn>=0.12.0
+plotly>=5.15.0
+
+# Development dependencies
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Future: API and web dependencies (for production)
+# fastapi>=0.100.0
+# uvicorn>=0.20.0
+# requests>=2.28.0
+# websockets>=11.0.0
+
+# Future: Database dependencies (for production)
+# sqlalchemy>=2.0.0
+# alembic>=1.10.0
+# redis>=4.5.0
+
+# Future: Blockchain dependencies (for production)
+# web3>=6.0.0
+# eth-account>=0.8.0
+# brownie-eth>=1.19.0
