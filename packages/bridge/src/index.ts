@@ -1,33 +1,87 @@
 import 'dotenv/config';
-import { ethers } from 'ethers';
+import { Decoder, HypersyncClient } from '@envio-dev/hypersync-client';
+import { createMonitoringConfig } from './monitoring/config.js';
+import { decodeStrategyPurchasedLog } from './monitoring/decoder.js';
+import { createLogger } from './utils/logger.js';
+import { StrategyPurchaseExecutor } from './services/executor.js';
+import { loadAppConfig } from './config/env.js';
 
-// Minimal event listener wiring; fill with actual addresses/ABIs at runtime
-const RPC_URL = process.env.POLYGON_RPC_URL || 'http://localhost:8545';
-const STRATEGY_MANAGER_ADDRESS = process.env.STRATEGY_MANAGER_ADDRESS as string;
-const STRATEGY_MANAGER_ABI = [
-  'event StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount)',
-  'function settleStrategy(uint256 strategyId, uint256 payoutPerUSDC) external',
-];
+const log = createLogger('bridge-main');
 
-async function main() {
-  if (!STRATEGY_MANAGER_ADDRESS) {
-    throw new Error('STRATEGY_MANAGER_ADDRESS is required');
-  }
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
-  const wallet = new ethers.Wallet(process.env.EXECUTOR_PK || ethers.Wallet.createRandom().privateKey, provider);
-  const contract = new ethers.Contract(STRATEGY_MANAGER_ADDRESS, STRATEGY_MANAGER_ABI, wallet);
+async function bootstrap() {
+  const appConfig = loadAppConfig();
+  const monitoringConfig = createMonitoringConfig(appConfig);
 
-  console.log('Bridge executor listening on', STRATEGY_MANAGER_ADDRESS);
+  const client = HypersyncClient.new(monitoringConfig.clientConfig);
 
-  contract.on('StrategyPurchased', async (strategyId, user, grossAmount, netAmount) => {
-    console.log('StrategyPurchased:', { strategyId: strategyId.toString(), user, grossAmount: grossAmount.toString(), netAmount: netAmount.toString() });
-    // TODO: execute Polymarket orders, bridge funds, execute hedge orders
+  const decoder = Decoder.fromSignatures([
+    'StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount)',
+  ]);
+
+  const executor = new StrategyPurchaseExecutor(appConfig);
+
+  log.info('Starting HyperSync monitoring loop', {
+    strategyManager: monitoringConfig.strategyManagerAddress,
+    fromBlock: monitoringConfig.startBlock,
   });
+
+  let nextBlock = monitoringConfig.startBlock;
+
+  while (true) {
+    const query = {
+      fromBlock: nextBlock,
+      toBlock: nextBlock + monitoringConfig.batchSize,
+      logs: [
+        {
+          address: [monitoringConfig.strategyManagerAddress],
+          topics: [
+            [monitoringConfig.topicStrategyPurchased],
+            [],
+            [],
+          ],
+        },
+      ],
+      fieldSelection: {
+        log: monitoringConfig.fields,
+      },
+    } as const;
+
+    const response = await client.get(query);
+    const decodedLogs = await decoder.decodeLogs(response.data.logs);
+
+    for (let i = 0; i < response.data.logs.length; i++) {
+      const logEntry = response.data.logs[i];
+      const decoded = decodedLogs[i];
+      const event = decodeStrategyPurchasedLog(logEntry, decoded);
+      if (!event) continue;
+
+      log.info('StrategyPurchased event detected', {
+        strategyId: event.strategyId.toString(),
+        user: event.user,
+        netAmount: event.netAmount.toString(),
+        blockNumber: event.blockNumber,
+      });
+
+      try {
+        await executor.handleStrategyPurchase(event);
+      } catch (error) {
+        log.error('Failed to execute strategy orders', {
+          error: (error as Error).message,
+          strategyId: event.strategyId.toString(),
+          user: event.user,
+        });
+      }
+    }
+
+    nextBlock = response.nextBlock;
+
+    await new Promise((resolve) => setTimeout(resolve, monitoringConfig.pollIntervalMs));
+  }
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
+bootstrap().catch((error) => {
+  log.error('Fatal error in bridge executor', error);
+  process.exitCode = 1;
 });
 
 

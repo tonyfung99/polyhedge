@@ -10,8 +10,11 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@envio-dev/hypersync-client": "^0.6.6",
+    "@polymarket/clob-client": "^4.22.7",
     "dotenv": "^16.4.5",
-    "ethers": "^6.10.0"
+    "ethers": "^6.10.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
