@@ -108,14 +108,14 @@ Visit `http://localhost:3000` to see the application.
 ### 📊 Analysis Results
 
 - **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Key findings and recommendations
-- **[Market Opportunities](docs/MARKET_OPPORTUNITIES.md)** - Current inefficiencies identified
-- **[Risk Analysis](docs/RISK_ANALYSIS.md)** - Constraints and mitigations
+- **[Arbitrage Strategy](docs/ARBITRAGE_STRATEGY_DETAILED.md)** - Complete mathematical breakdown
+- **[Example Walkthrough](docs/EXAMPLE_WALKTHROUGH.md)** - Real $10k portfolio example
+- **[Product Ideas](docs/refined_product_ideas.md)** - 4 viable product alternatives
 
 ### 🛠️ Technical Docs
 
-- **[API Documentation](docs/API_DOCS.md)** - Integration guides
-- **[Smart Contracts](docs/SMART_CONTRACTS.md)** - Contract architecture
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production setup
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Detailed project organization
+- **[System Flow](docs/SYSTEM_FLOW.md)** - End-to-end system design
 
 ## 🎯 Key Features
 
