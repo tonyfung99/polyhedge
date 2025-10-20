@@ -101,9 +101,9 @@ Visit `http://localhost:3000` to see the application.
 ### 🎯 Start Here
 
 1. **[Project Overview](docs/PROJECT_OVERVIEW.md)** - Complete project explanation
-2. **[Mathematical Analysis](docs/MATHEMATICAL_ANALYSIS.md)** - Black-Scholes theory and verification
-3. **[Strategy Guide](docs/STRATEGY_GUIDE.md)** - How arbitrage + hedging works
-4. **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Development roadmap
+2. **[Refined Implementation Plan](docs/REFINED_IMPLEMENTATION_PLAN.md)** - Package-based system architecture
+3. **[Technical Specification](docs/TECHNICAL_SPECIFICATION.md)** - Detailed implementation guide
+4. **[Team Assignments](docs/TEAM_ASSIGNMENTS.md)** - Development team structure
 
 ### 📊 Analysis Results
 
@@ -119,33 +119,33 @@ Visit `http://localhost:3000` to see the application.
 
 ## 🎯 Key Features
 
-### 1. Market Scanner
+### 1. Package-Based System
 
-- Real-time theoretical pricing for all Polymarket crypto markets
-- Inefficiency detection (theory vs market price)
-- Opportunity ranking by edge percentage
-- Historical tracking and alerts
+- Pre-constructed hedging packages for easy user adoption
+- Automated market scanning and package creation
+- One-click package purchase and management
+- Risk-managed arbitrage opportunities
 
-### 2. Arbitrage Engine
+### 2. Cross-Chain Execution
 
-- Automated spread position creation
-- Kelly Criterion position sizing
-- Risk management and diversification
-- Early exit when prices converge
-
-### 3. Cross-Chain Execution
-
-- Lit Protocol Vincent for transaction bundling
-- One-click execution across Polygon ↔ Arbitrum
-- Automated hedging via DEX perpetuals
+- LayerZero Stargate for cross-chain bridging
+- Automated hedging on DEX perpetuals (GMX, Hyperliquid)
+- Real-time position monitoring and status updates
 - Gas optimization and retry logic
 
-### 4. Dashboard
+### 3. Smart Contract Integration
 
-- Live market scanner with opportunities
-- Portfolio visualization and PNL tracking
-- Position monitoring and alerts
-- Performance analytics
+- Package management and user position tracking
+- Automated order execution coordination
+- Secure fund management and claim processing
+- Event-driven bridge system
+
+### 4. User Interface
+
+- Package marketplace for browsing opportunities
+- User dashboard for position tracking
+- One-click package purchase and claim interface
+- Real-time PNL visualization
 
 ## 📊 Mathematical Foundation
 
