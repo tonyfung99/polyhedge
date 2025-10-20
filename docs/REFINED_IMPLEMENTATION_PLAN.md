@@ -148,16 +148,17 @@ class EventListener {
 }
 ```
 
-**Cross-Chain Flow:**
+**Cross-Chain + Settlement Flow:**
 
 ```typescript
 const crossChainExecution = {
-  1: "Listen for PackagePurchased event",
+  1: "Listen for StrategyPurchased event",
   2: "Execute Polymarket orders on Polygon",
   3: "Bridge funds to Arbitrum/Base via LayerZero",
   4: "Execute hedge orders on GMX/Hyperliquid",
-  5: "Report execution status back to contract",
-  6: "Update user position status",
+  5: "Close positions at/after maturity",
+  6: "Compute payoutPerUSDC and call settleStrategy",
+  7: "Report execution status back to contract",
 };
 ```
 

@@ -292,16 +292,17 @@ contract StrategyManager is ReentrancyGuard, Ownable {
 }
 ```
 
-### **3. Bridge System** 🌉
+### **3. Bridge/Executor System** 🌉
 
 #### **Architecture:**
 ```typescript
-// strategys/bridge/
+// strategies/bridge/
 ├── event-listener.ts       # Smart contract event monitoring
-├── order-executor.ts       # Order execution logic
-├── cross-chain-bridge.ts   # Cross-chain bridging
+├── order-executor.ts       # Order execution logic (Polymarket + DEX)
+├── cross-chain-bridge.ts   # Cross-chain bridging (LayerZero/Stargate)
+├── settlement.ts           # Compute payout factor & settleStrategy
 ├── status-reporter.ts      # Status reporting
-└── config.ts              # Configuration
+└── config.ts               # Configuration
 ```
 
 #### **Implementation Details:**

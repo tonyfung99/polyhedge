@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title StrategyManager
@@ -41,6 +41,9 @@ contract StrategyManager is Ownable, ReentrancyGuard {
         uint256 maturityTs; // unix timestamp
         bool active;
         StrategyDetails details;
+        // settlement
+        bool settled;
+        uint256 payoutPerUSDC; // 6 decimals, e.g. 1.08e6 means 1.08 USDC per 1 USDC net
     }
 
     struct UserPosition {
@@ -63,6 +66,7 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     event StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount);
     event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
     event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 payoutAmount);
+    event StrategySettled(uint256 indexed strategyId, uint256 payoutPerUSDC);
 
     constructor(address _usdc) Ownable(msg.sender) {
         require(_usdc != address(0), "USDC address required");
@@ -94,6 +98,8 @@ contract StrategyManager is Ownable, ReentrancyGuard {
         s.maturityTs = maturityTs;
         s.active = true;
         s.details.expectedProfitBps = expectedProfitBps;
+        s.settled = false;
+        s.payoutPerUSDC = 0;
 
         for (uint256 i = 0; i < pmOrders.length; i++) {
             s.details.polymarketOrders.push(pmOrders[i]);
@@ -112,6 +118,7 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     function buyStrategy(uint256 strategyId, uint256 grossAmount) external nonReentrant {
         Strategy storage s = strategies[strategyId];
         require(s.active, "strategy inactive");
+        require(!s.settled, "strategy settled");
         require(block.timestamp < s.maturityTs, "strategy matured");
         require(grossAmount > 0, "amount=0");
 
@@ -124,7 +131,7 @@ contract StrategyManager is Ownable, ReentrancyGuard {
 
         // record user position
         userPositions[msg.sender].push(
-            UserPosition({strategyId: strategyId, amount: netAmount, purchaseTs: block.timestamp, claimed: false})
+            UserPosition({ strategyId: strategyId, amount: netAmount, purchaseTs: block.timestamp, claimed: false })
         );
 
         emit StrategyPurchased(strategyId, msg.sender, grossAmount, netAmount);
@@ -133,6 +140,8 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     function claimStrategy(uint256 strategyId) external nonReentrant {
         Strategy storage s = strategies[strategyId];
         require(block.timestamp >= s.maturityTs, "not matured");
+        require(s.settled, "not settled");
+        require(s.payoutPerUSDC > 0, "payout unset");
 
         // find unclaimed position (simple linear scan for MVP)
         UserPosition[] storage positions = userPositions[msg.sender];
@@ -148,9 +157,8 @@ contract StrategyManager is Ownable, ReentrancyGuard {
         UserPosition storage p = positions[idx];
         p.claimed = true;
 
-        // NOTE: For MVP payout equals principal. In later versions, this will
-        //       reflect realized PnL reported by the bridge/executor.
-        uint256 payout = p.amount;
+        // Payout is proportional to contributed net amount times settlement factor
+        uint256 payout = (p.amount * s.payoutPerUSDC) / 1_000_000; // 6 decimals
         require(usdc.transfer(msg.sender, payout), "USDC payout failed");
 
         emit StrategyClaimed(strategyId, msg.sender, payout);
@@ -162,6 +170,17 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     function reportExecutionStatus(uint256 strategyId, address user, bool success) external onlyOwner {
         emit OrdersExecuted(strategyId, user, success);
     }
+
+    /// @notice Settle a strategy with a global payout-per-USDC factor after all legs are closed off-chain
+    function settleStrategy(uint256 strategyId, uint256 payoutPerUSDC) external onlyOwner {
+        Strategy storage s = strategies[strategyId];
+        require(block.timestamp >= s.maturityTs, "not matured");
+        require(!s.settled, "already settled");
+        require(payoutPerUSDC > 0, "invalid payout");
+        s.settled = true;
+        s.payoutPerUSDC = payoutPerUSDC; // 6 decimals
+        // deactivate further buys just in case
+        s.active = false;
+        emit StrategySettled(strategyId, payoutPerUSDC);
+    }
 }
-
-
