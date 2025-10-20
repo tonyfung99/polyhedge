@@ -67,6 +67,8 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
     event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 payoutAmount);
     event StrategySettled(uint256 indexed strategyId, uint256 payoutPerUSDC);
+    // New: signal to bridge/HedgeExecutor on Arbitrum
+    event HedgeOrdersTriggered(uint256 indexed strategyId, address indexed user, HedgeOrder[] hedgeOrders);
 
     constructor(address _usdc) Ownable(msg.sender) {
         require(_usdc != address(0), "USDC address required");
@@ -135,6 +137,10 @@ contract StrategyManager is Ownable, ReentrancyGuard {
         );
 
         emit StrategyPurchased(strategyId, msg.sender, grossAmount, netAmount);
+        
+        // Trigger hedge orders on Arbitrum via cross-chain messaging
+        // In production, LayerZero would handle this automatically
+        emit HedgeOrdersTriggered(strategyId, msg.sender, s.details.hedgeOrders);
     }
 
     function claimStrategy(uint256 strategyId) external nonReentrant {
