@@ -692,29 +692,33 @@ pip install -r requirements.txt
 yarn dev
 ```
 
-## 🚀 Deployment
+## 🚀 Deployment (3-Day Timeline)
 
-### **Smart Contracts:**
+### **Day 1: Smart Contracts**
 ```bash
-# Deploy to Polygon
-yarn hardhat deploy --network polygon
+# Deploy to Polygon testnet
+yarn hardhat deploy --network polygon-mumbai
 
-# Verify contracts
-yarn hardhat verify --network polygon
+# Test contracts
+yarn hardhat test
 ```
 
-### **Bridge System:**
+### **Day 2: Bridge System**
 ```bash
 # Deploy bridge service
 cd packages/bridge
 npm run build
-npm run start
+npm run start:dev
 ```
 
-### **Frontend:**
+### **Day 3: Frontend & Demo**
 ```bash
 # Deploy to Vercel
 yarn vercel
+
+# Prepare demo
+yarn build
+yarn start
 ```
 
 ---

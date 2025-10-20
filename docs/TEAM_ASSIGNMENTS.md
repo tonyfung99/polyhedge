@@ -4,79 +4,53 @@
 
 This document outlines the team assignments and responsibilities for building the PolyHedge package system. Each team member can work independently on their assigned components while maintaining clear integration points.
 
-## 👥 Team Structure
+## 👥 Team Structure (3 Members)
 
-### **Team Member 1: Smart Contract Developer** 📜
-**Focus:** Smart contract development and deployment
+### **Team Member 1: Smart Contract + Bot Developer** 📜🤖
+**Focus:** Smart contracts and market scanning bot
 
 **Responsibilities:**
 - [ ] PackageManager.sol contract development
-- [ ] PackageFactory.sol contract development
-- [ ] PositionTracker.sol contract development
-- [ ] FeeManager.sol contract development
-- [ ] SecurityManager.sol contract development
 - [ ] Contract testing and deployment
-- [ ] Contract verification on Polygon
+- [ ] Market scanner implementation
+- [ ] Package builder logic
+- [ ] Contract interaction module
+- [ ] Bot scheduling and monitoring
 
 **Key Deliverables:**
 - Complete smart contract suite
-- Comprehensive test coverage
-- Deployment scripts
-- Contract documentation
+- Functional setup bot
+- Market scanning service
+- Package creation automation
 
-**Timeline:** Week 1-2
+**Timeline:** Day 1-2
 
 **Integration Points:**
 - Contract ABI for frontend integration
 - Event definitions for bridge system
-- Function signatures for bot interaction
-
----
-
-### **Team Member 2: Bot Developer** 🤖
-**Focus:** Market scanning and package creation bot
-
-**Responsibilities:**
-- [ ] Market scanner implementation
-- [ ] Package builder logic
-- [ ] Contract interaction module
-- [ ] Private key management
-- [ ] Bot scheduling and monitoring
-- [ ] Package validation logic
-
-**Key Deliverables:**
-- Fully functional setup bot
-- Market scanning service
-- Package creation automation
-- Bot monitoring dashboard
-
-**Timeline:** Week 1-2
-
-**Integration Points:**
-- Smart contract interaction
 - Package data structure
-- Event emission for bridge system
 
 ---
 
-### **Team Member 3: Bridge Developer** 🌉
-**Focus:** Cross-chain execution and order management
+### **Team Member 2: Bridge + Backend Developer** 🌉⚙️
+**Focus:** Cross-chain execution and backend infrastructure
 
 **Responsibilities:**
 - [ ] Event listener implementation
 - [ ] Order executor logic
-- [ ] Cross-chain bridge integration
+- [ ] Cross-chain bridge integration (LayerZero)
 - [ ] Status reporting system
-- [ ] Error handling and retry logic
-- [ ] Blockscout/Envio integration
+- [ ] Database setup and management
+- [ ] API development
+- [ ] System monitoring
 
 **Key Deliverables:**
 - Bridge service application
 - Cross-chain execution system
-- Event monitoring system
-- Status reporting API
+- Backend API
+- Database infrastructure
 
-**Timeline:** Week 2-3
+**Timeline:** Day 1-2
 
 **Integration Points:**
 - Smart contract events
@@ -85,7 +59,7 @@ This document outlines the team assignments and responsibilities for building th
 
 ---
 
-### **Team Member 4: Frontend Developer** 🖥️
+### **Team Member 3: Frontend Developer** 🖥️
 **Focus:** User interface and experience
 
 **Responsibilities:**
@@ -93,161 +67,101 @@ This document outlines the team assignments and responsibilities for building th
 - [ ] User dashboard
 - [ ] Package purchase flow
 - [ ] Position tracking interface
-- [ ] Claim interface
 - [ ] Wallet integration (RainbowKit)
+- [ ] Demo presentation preparation
 
 **Key Deliverables:**
 - Complete frontend application
 - Responsive design
 - Wallet integration
-- User experience optimization
+- Demo-ready interface
 
-**Timeline:** Week 2-4
+**Timeline:** Day 1-3
 
 **Integration Points:**
 - Smart contract integration
 - Bridge status updates
 - Package data display
 
----
+## 📋 Detailed Task Breakdown (3 Days)
 
-### **Team Member 5: DevOps/Integration** ⚙️
-**Focus:** Infrastructure and system integration
+### **Day 1: Foundation & Core Development**
 
-**Responsibilities:**
-- [ ] Development environment setup
-- [ ] CI/CD pipeline
-- [ ] Database setup and management
-- [ ] API development
-- [ ] System monitoring
-- [ ] Deployment automation
-
-**Key Deliverables:**
-- Development infrastructure
-- Production deployment
-- Monitoring and alerting
-- API documentation
-
-**Timeline:** Week 1-5
-
-**Integration Points:**
-- All system components
-- Database schemas
-- API endpoints
-
-## 📋 Detailed Task Breakdown
-
-### **Week 1: Foundation**
-
-#### **Smart Contract Developer:**
+#### **Team Member 1 (Smart Contract + Bot):**
 - [ ] Set up Hardhat project structure
 - [ ] Implement PackageManager.sol core functions
-- [ ] Create basic test suite
+- [ ] Set up Python environment for bot
+- [ ] Implement basic market scanner
+- [ ] Create package builder logic
 - [ ] Deploy to Polygon testnet
 
-#### **Bot Developer:**
-- [ ] Set up Python environment
-- [ ] Implement market scanner
-- [ ] Create package builder logic
-- [ ] Set up contract interaction
-
-#### **Bridge Developer:**
+#### **Team Member 2 (Bridge + Backend):**
 - [ ] Set up Node.js project
 - [ ] Implement event listener
-- [ ] Create order executor structure
+- [ ] Set up database schemas
+- [ ] Create basic API endpoints
 - [ ] Set up cross-chain bridge client
+- [ ] Configure monitoring
 
-#### **Frontend Developer:**
+#### **Team Member 3 (Frontend):**
 - [ ] Set up Next.js project
 - [ ] Create basic UI components
-- [ ] Implement wallet connection
+- [ ] Implement wallet connection (RainbowKit)
 - [ ] Set up contract integration
+- [ ] Create package marketplace UI
+- [ ] Implement basic purchase flow
 
-#### **DevOps:**
-- [ ] Set up development environment
-- [ ] Create database schemas
-- [ ] Set up CI/CD pipeline
-- [ ] Configure monitoring
+### **Day 2: Integration & Execution**
 
-### **Week 2: Core Development**
-
-#### **Smart Contract Developer:**
+#### **Team Member 1 (Smart Contract + Bot):**
 - [ ] Complete PackageManager.sol
-- [ ] Implement PositionTracker.sol
 - [ ] Add comprehensive tests
-- [ ] Deploy to Polygon mainnet
-
-#### **Bot Developer:**
 - [ ] Complete market scanner
 - [ ] Implement package validation
-- [ ] Add bot scheduling
+- [ ] Deploy to Polygon mainnet
 - [ ] Test contract interaction
 
-#### **Bridge Developer:**
+#### **Team Member 2 (Bridge + Backend):**
 - [ ] Complete event listener
 - [ ] Implement order execution
-- [ ] Add cross-chain bridging
-- [ ] Test with smart contracts
-
-#### **Frontend Developer:**
-- [ ] Create package marketplace
-- [ ] Implement purchase flow
-- [ ] Add user dashboard
-- [ ] Test wallet integration
-
-#### **DevOps:**
-- [ ] Set up production environment
-- [ ] Create API endpoints
-- [ ] Configure monitoring
-- [ ] Set up backup systems
-
-### **Week 3: Integration**
-
-#### **Smart Contract Developer:**
-- [ ] Add security features
-- [ ] Implement fee management
-- [ ] Add emergency functions
-- [ ] Final testing and audit
-
-#### **Bot Developer:**
-- [ ] Optimize package creation
-- [ ] Add monitoring and alerting
-- [ ] Test with live markets
-- [ ] Performance optimization
-
-#### **Bridge Developer:**
-- [ ] Complete cross-chain integration
-- [ ] Add error handling
-- [ ] Implement retry logic
-- [ ] Test with live orders
-
-#### **Frontend Developer:**
-- [ ] Complete user interface
-- [ ] Add position tracking
-- [ ] Implement claim interface
-- [ ] User experience testing
-
-#### **DevOps:**
+- [ ] Add cross-chain bridging (LayerZero)
 - [ ] Complete API development
+- [ ] Test with smart contracts
+- [ ] Set up production environment
+
+#### **Team Member 3 (Frontend):**
+- [ ] Complete package marketplace
+- [ ] Implement user dashboard
+- [ ] Add position tracking interface
+- [ ] Test wallet integration
+- [ ] Create responsive design
+- [ ] Add real-time updates
+
+### **Day 3: Polish & Demo**
+
+#### **Team Member 1 (Smart Contract + Bot):**
+- [ ] Add security features
+- [ ] Optimize package creation
+- [ ] Test with live markets
+- [ ] Final contract testing
+
+#### **Team Member 2 (Bridge + Backend):**
+- [ ] Complete cross-chain integration
+- [ ] Add error handling and retry logic
 - [ ] Set up production monitoring
-- [ ] Configure alerting
 - [ ] Performance optimization
 
-### **Week 4: Testing & Polish**
+#### **Team Member 3 (Frontend):**
+- [ ] Complete user interface
+- [ ] Add claim interface
+- [ ] User experience testing
+- [ ] Demo presentation preparation
 
 #### **All Team Members:**
 - [ ] End-to-end testing
 - [ ] Bug fixes and optimization
-- [ ] Documentation updates
 - [ ] Demo preparation
-
-### **Week 5: Launch**
-
-#### **All Team Members:**
-- [ ] Final testing
-- [ ] Production deployment
-- [ ] Demo presentation
-- [ ] Launch preparation
+- [ ] Final presentation
 
 ## 🔗 Integration Points
 
@@ -323,40 +237,28 @@ This document outlines the team assignments and responsibilities for building th
 - **GitHub:** Issues and PRs
 - **Discord:** Real-time coordination
 
-## 🎯 Deliverables Timeline
+## 🎯 Deliverables Timeline (3 Days)
 
-### **Week 1 Deliverables:**
-- [ ] Smart contract foundation
+### **Day 1 Deliverables:**
+- [ ] Smart contract foundation (PackageManager.sol)
 - [ ] Bot market scanner
 - [ ] Bridge event listener
-- [ ] Frontend basic UI
-- [ ] Development environment
+- [ ] Frontend basic UI and wallet integration
+- [ ] Development environment setup
 
-### **Week 2 Deliverables:**
-- [ ] Complete smart contracts
-- [ ] Functional bot
-- [ ] Bridge order execution
-- [ ] Package marketplace
-- [ ] API endpoints
+### **Day 2 Deliverables:**
+- [ ] Complete smart contracts deployed
+- [ ] Functional bot with package creation
+- [ ] Bridge order execution system
+- [ ] Package marketplace UI
+- [ ] Cross-chain integration (LayerZero)
 
-### **Week 3 Deliverables:**
-- [ ] Security features
-- [ ] Optimized bot
-- [ ] Cross-chain integration
-- [ ] User dashboard
-- [ ] Production environment
-
-### **Week 4 Deliverables:**
-- [ ] Final testing
-- [ ] Bug fixes
-- [ ] Documentation
+### **Day 3 Deliverables:**
+- [ ] User dashboard and position tracking
+- [ ] End-to-end testing
 - [ ] Demo preparation
-
-### **Week 5 Deliverables:**
+- [ ] Final presentation
 - [ ] Production deployment
-- [ ] Demo presentation
-- [ ] Launch preparation
-- [ ] Post-launch monitoring
 
 ---
 
