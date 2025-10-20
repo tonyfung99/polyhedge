@@ -2,40 +2,46 @@
 
 ## 🎯 Overview
 
-This document outlines the team assignments and responsibilities for building the PolyHedge package system. Each team member can work independently on their assigned components while maintaining clear integration points.
+This document outlines the team assignments and responsibilities for building the PolyHedge strategy system. Each team member can work independently on their assigned components while maintaining clear integration points.
 
 ## 👥 Team Structure (3 Members)
 
 ### **Team Member 1: Smart Contract + Bot Developer** 📜🤖
+
 **Focus:** Smart contracts and market scanning bot
 
 **Responsibilities:**
-- [ ] PackageManager.sol contract development
+
+- [ ] StrategyManager.sol contract development
 - [ ] Contract testing and deployment
 - [ ] Market scanner implementation
-- [ ] Package builder logic
+- [ ] Strategy builder logic
 - [ ] Contract interaction module
 - [ ] Bot scheduling and monitoring
 
 **Key Deliverables:**
+
 - Complete smart contract suite
 - Functional setup bot
 - Market scanning service
-- Package creation automation
+- Strategy creation automation
 
 **Timeline:** Day 1-2
 
 **Integration Points:**
+
 - Contract ABI for frontend integration
 - Event definitions for bridge system
-- Package data structure
+- Strategy data structure
 
 ---
 
 ### **Team Member 2: Bridge + Backend Developer** 🌉⚙️
+
 **Focus:** Cross-chain execution and backend infrastructure
 
 **Responsibilities:**
+
 - [ ] Event listener implementation
 - [ ] Order executor logic
 - [ ] Cross-chain bridge integration (LayerZero)
@@ -45,6 +51,7 @@ This document outlines the team assignments and responsibilities for building th
 - [ ] System monitoring
 
 **Key Deliverables:**
+
 - Bridge service application
 - Cross-chain execution system
 - Backend API
@@ -53,24 +60,28 @@ This document outlines the team assignments and responsibilities for building th
 **Timeline:** Day 1-2
 
 **Integration Points:**
+
 - Smart contract events
 - Frontend status updates
-- Bot package data
+- Bot strategy data
 
 ---
 
 ### **Team Member 3: Frontend Developer** 🖥️
+
 **Focus:** User interface and experience
 
 **Responsibilities:**
-- [ ] Package marketplace UI
+
+- [ ] Strategy marketplace UI
 - [ ] User dashboard
-- [ ] Package purchase flow
+- [ ] Strategy purchase flow
 - [ ] Position tracking interface
 - [ ] Wallet integration (RainbowKit)
 - [ ] Demo presentation preparation
 
 **Key Deliverables:**
+
 - Complete frontend application
 - Responsive design
 - Wallet integration
@@ -79,23 +90,26 @@ This document outlines the team assignments and responsibilities for building th
 **Timeline:** Day 1-3
 
 **Integration Points:**
+
 - Smart contract integration
 - Bridge status updates
-- Package data display
+- Strategy data display
 
 ## 📋 Detailed Task Breakdown (3 Days)
 
 ### **Day 1: Foundation & Core Development**
 
 #### **Team Member 1 (Smart Contract + Bot):**
+
 - [ ] Set up Hardhat project structure
-- [ ] Implement PackageManager.sol core functions
+- [ ] Implement StrategyManager.sol core functions
 - [ ] Set up Python environment for bot
 - [ ] Implement basic market scanner
-- [ ] Create package builder logic
+- [ ] Create strategy builder logic
 - [ ] Deploy to Polygon testnet
 
 #### **Team Member 2 (Bridge + Backend):**
+
 - [ ] Set up Node.js project
 - [ ] Implement event listener
 - [ ] Set up database schemas
@@ -104,24 +118,27 @@ This document outlines the team assignments and responsibilities for building th
 - [ ] Configure monitoring
 
 #### **Team Member 3 (Frontend):**
+
 - [ ] Set up Next.js project
 - [ ] Create basic UI components
 - [ ] Implement wallet connection (RainbowKit)
 - [ ] Set up contract integration
-- [ ] Create package marketplace UI
+- [ ] Create strategy marketplace UI
 - [ ] Implement basic purchase flow
 
 ### **Day 2: Integration & Execution**
 
 #### **Team Member 1 (Smart Contract + Bot):**
-- [ ] Complete PackageManager.sol
+
+- [ ] Complete StrategyManager.sol
 - [ ] Add comprehensive tests
 - [ ] Complete market scanner
-- [ ] Implement package validation
+- [ ] Implement strategy validation
 - [ ] Deploy to Polygon mainnet
 - [ ] Test contract interaction
 
 #### **Team Member 2 (Bridge + Backend):**
+
 - [ ] Complete event listener
 - [ ] Implement order execution
 - [ ] Add cross-chain bridging (LayerZero)
@@ -130,7 +147,8 @@ This document outlines the team assignments and responsibilities for building th
 - [ ] Set up production environment
 
 #### **Team Member 3 (Frontend):**
-- [ ] Complete package marketplace
+
+- [ ] Complete strategy marketplace
 - [ ] Implement user dashboard
 - [ ] Add position tracking interface
 - [ ] Test wallet integration
@@ -140,24 +158,28 @@ This document outlines the team assignments and responsibilities for building th
 ### **Day 3: Polish & Demo**
 
 #### **Team Member 1 (Smart Contract + Bot):**
+
 - [ ] Add security features
-- [ ] Optimize package creation
+- [ ] Optimize strategy creation
 - [ ] Test with live markets
 - [ ] Final contract testing
 
 #### **Team Member 2 (Bridge + Backend):**
+
 - [ ] Complete cross-chain integration
 - [ ] Add error handling and retry logic
 - [ ] Set up production monitoring
 - [ ] Performance optimization
 
 #### **Team Member 3 (Frontend):**
+
 - [ ] Complete user interface
 - [ ] Add claim interface
 - [ ] User experience testing
 - [ ] Demo presentation preparation
 
 #### **All Team Members:**
+
 - [ ] End-to-end testing
 - [ ] Bug fixes and optimization
 - [ ] Demo preparation
@@ -166,42 +188,49 @@ This document outlines the team assignments and responsibilities for building th
 ## 🔗 Integration Points
 
 ### **Smart Contract ↔ Bot:**
+
 - Contract ABI and function calls
 - Event definitions
-- Package data structure
+- Strategy data structure
 
 ### **Smart Contract ↔ Bridge:**
+
 - Event listening
 - Status reporting
 - Order execution coordination
 
 ### **Smart Contract ↔ Frontend:**
+
 - Contract ABI
 - Function calls
 - Event listening
 
 ### **Bridge ↔ Frontend:**
+
 - Status updates
 - Order execution status
 - Error reporting
 
 ### **Bot ↔ Bridge:**
-- Package data
+
+- Strategy data
 - Order specifications
 - Execution parameters
 
 ## 📊 Success Metrics
 
 ### **Technical Metrics:**
+
 - [ ] Smart contracts deployed and verified
-- [ ] Bot creating 5+ packages daily
+- [ ] Bot creating 5+ strategys daily
 - [ ] Bridge executing orders with >95% success rate
 - [ ] Frontend handling 100+ concurrent users
 - [ ] System uptime >99%
 
 ### **Business Metrics:**
-- [ ] 10+ packages available for purchase
-- [ ] $1,000+ in package sales
+
+- [ ] 10+ strategys available for purchase
+- [ ] $1,000+ in strategy sales
 - [ ] 50+ active users
 - [ ] <5% transaction failures
 - [ ] Positive user feedback
@@ -209,13 +238,15 @@ This document outlines the team assignments and responsibilities for building th
 ## 🚨 Risk Mitigation
 
 ### **Technical Risks:**
+
 - **Smart Contract Bugs:** Comprehensive testing and audit
 - **Bridge Failures:** Retry logic and error handling
 - **Bot Downtime:** Monitoring and alerting
 - **Frontend Issues:** User testing and feedback
 
 ### **Business Risks:**
-- **Low Package Quality:** Validation and testing
+
+- **Low Strategy Quality:** Validation and testing
 - **User Adoption:** Marketing and user experience
 - **Competition:** Unique value proposition
 - **Regulatory:** Compliance and legal review
@@ -223,16 +254,19 @@ This document outlines the team assignments and responsibilities for building th
 ## 📞 Communication
 
 ### **Daily Standups:**
+
 - **Time:** 9:00 AM PST
 - **Duration:** 15 minutes
 - **Format:** Progress, blockers, next steps
 
 ### **Weekly Reviews:**
+
 - **Time:** Friday 5:00 PM PST
 - **Duration:** 30 minutes
 - **Format:** Demo, feedback, planning
 
 ### **Communication Channels:**
+
 - **Slack:** #polyhedge-dev
 - **GitHub:** Issues and PRs
 - **Discord:** Real-time coordination
@@ -240,20 +274,23 @@ This document outlines the team assignments and responsibilities for building th
 ## 🎯 Deliverables Timeline (3 Days)
 
 ### **Day 1 Deliverables:**
-- [ ] Smart contract foundation (PackageManager.sol)
+
+- [ ] Smart contract foundation (StrategyManager.sol)
 - [ ] Bot market scanner
 - [ ] Bridge event listener
 - [ ] Frontend basic UI and wallet integration
 - [ ] Development environment setup
 
 ### **Day 2 Deliverables:**
+
 - [ ] Complete smart contracts deployed
-- [ ] Functional bot with package creation
+- [ ] Functional bot with strategy creation
 - [ ] Bridge order execution system
-- [ ] Package marketplace UI
+- [ ] Strategy marketplace UI
 - [ ] Cross-chain integration (LayerZero)
 
 ### **Day 3 Deliverables:**
+
 - [ ] User dashboard and position tracking
 - [ ] End-to-end testing
 - [ ] Demo preparation

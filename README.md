@@ -35,9 +35,9 @@ PolyHedge is an automated arbitrage platform that exploits pricing inefficiencie
 
 ### Core Technologies
 
-- **Frontend**: Next.js (Scaffold-ETH 2) - `packages/nextjs/`
-- **Smart Contracts**: Solidity (Hardhat) - `packages/hardhat/`
-- **Python Analysis**: Mathematical models - `packages/python/`
+- **Frontend**: Next.js (Scaffold-ETH 2) - `strategys/nextjs/`
+- **Smart Contracts**: Solidity (Hardhat) - `strategys/hardhat/`
+- **Python Analysis**: Mathematical models - `strategys/python/`
 - **Cross-Chain**: Lit Protocol Vincent
 - **Oracles**: Pyth Network
 - **Markets**: Polymarket CLOB API
@@ -72,13 +72,13 @@ yarn install
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r packages/python/requirements.txt
+pip install -r strategys/python/requirements.txt
 ```
 
 ### 3. Run Mathematical Verification
 
 ```bash
-python packages/python/analysis/verify_math.py
+python strategys/python/analysis/verify_math.py
 ```
 
 ### 4. Start Development
@@ -101,7 +101,7 @@ Visit `http://localhost:3000` to see the application.
 ### 🎯 Start Here
 
 1. **[Project Overview](docs/PROJECT_OVERVIEW.md)** - Complete project explanation
-2. **[Refined Implementation Plan](docs/REFINED_IMPLEMENTATION_PLAN.md)** - Package-based system architecture
+2. **[Refined Implementation Plan](docs/REFINED_IMPLEMENTATION_PLAN.md)** - Strategy-based system architecture
 3. **[Technical Specification](docs/TECHNICAL_SPECIFICATION.md)** - Detailed implementation guide
 4. **[Team Assignments](docs/TEAM_ASSIGNMENTS.md)** - Development team structure
 
@@ -111,11 +111,11 @@ Visit `http://localhost:3000` to see the application.
 
 ## 🎯 Key Features
 
-### 1. Package-Based System
+### 1. Strategy-Based System
 
-- Pre-constructed hedging packages for easy user adoption
-- Automated market scanning and package creation
-- One-click package purchase and management
+- Pre-constructed hedging strategys for easy user adoption
+- Automated market scanning and strategy creation
+- One-click strategy purchase and management
 - Risk-managed arbitrage opportunities
 
 ### 2. Cross-Chain Execution
@@ -127,16 +127,16 @@ Visit `http://localhost:3000` to see the application.
 
 ### 3. Smart Contract Integration
 
-- Package management and user position tracking
+- Strategy management and user position tracking
 - Automated order execution coordination
 - Secure fund management and claim processing
 - Event-driven bridge system
 
 ### 4. User Interface
 
-- Package marketplace for browsing opportunities
+- Strategy marketplace for browsing opportunities
 - User dashboard for position tracking
-- One-click package purchase and claim interface
+- One-click strategy purchase and claim interface
 - Real-time PNL visualization
 
 ## 📊 Mathematical Foundation

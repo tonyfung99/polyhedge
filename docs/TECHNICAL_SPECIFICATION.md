@@ -1,8 +1,8 @@
-# Technical Specification: PolyHedge Package System
+# Technical Specification: PolyHedge Strategy System
 
 ## 🎯 System Overview
 
-PolyHedge is a package-based arbitrage platform that allows users to buy pre-constructed hedging packages instead of manually managing complex cross-chain strategies.
+PolyHedge is a strategy-based arbitrage platform that allows users to buy pre-constructed hedging strategies instead of manually managing complex cross-chain strategies.
 
 ## 🏗️ Architecture Components
 
@@ -10,16 +10,16 @@ PolyHedge is a package-based arbitrage platform that allows users to buy pre-con
 
 #### **Core Responsibilities:**
 - Market scanning and opportunity identification
-- Package construction and validation
+- Strategy construction and validation
 - Smart contract interaction
 - Private key management
 
 #### **Technical Stack:**
 ```python
-# packages/python/bot/
+# strategys/python/bot/
 ├── setup_bot.py           # Main bot orchestrator
 ├── market_scanner.py      # Polymarket scanning
-├── package_builder.py     # Package construction
+├── strategy_builder.py     # Strategy construction
 ├── contract_manager.py    # Smart contract interaction
 ├── key_manager.py         # Private key management
 └── config.py              # Configuration
@@ -54,26 +54,26 @@ class MarketScanner:
         return opportunities
 ```
 
-**Package Builder:**
+**Strategy Builder:**
 ```python
-class PackageBuilder:
+class StrategyBuilder:
     def __init__(self):
         self.position_sizer = KellyPositionSizer()
         self.risk_manager = RiskManager()
     
-    def create_packages(self, opportunities: List[Opportunity]) -> List[Package]:
-        """Create hedging packages from opportunities"""
-        packages = []
+    def create_strategys(self, opportunities: List[Opportunity]) -> List[Strategy]:
+        """Create hedging strategys from opportunities"""
+        strategys = []
         
         # Group opportunities by asset and expiry
         grouped = self.group_opportunities(opportunities)
         
         for group in grouped:
-            package = self.build_hedged_package(group)
-            if self.validate_package(package):
-                packages.append(package)
+            strategy = self.build_hedged_strategy(group)
+            if self.validate_strategy(strategy):
+                strategys.append(strategy)
         
-        return packages
+        return strategys
 ```
 
 **Contract Manager:**
@@ -87,15 +87,15 @@ class ContractManager:
         )
         self.private_key = self.load_private_key()
     
-    async def deploy_package(self, package: Package):
-        """Deploy package to smart contract"""
-        tx = self.contract.functions.createPackage(
-            package.id,
-            package.name,
-            package.expected_return,
-            package.fee,
-            package.maturity_date,
-            package.details
+    async def deploy_strategy(self, strategy: Strategy):
+        """Deploy strategy to smart contract"""
+        tx = self.contract.functions.createStrategy(
+            strategy.id,
+            strategy.name,
+            strategy.expected_return,
+            strategy.fee,
+            strategy.maturity_date,
+            strategy.details
         ).build_transaction({
             'from': self.account.address,
             'gas': 500000,
@@ -112,9 +112,9 @@ class ContractManager:
 
 #### **Contract Architecture:**
 ```solidity
-// packages/hardhat/contracts/
-├── PackageManager.sol      # Main package management
-├── PackageFactory.sol      # Package creation factory
+// strategys/hardhat/contracts/
+├── StrategyManager.sol      # Main strategy management
+├── StrategyFactory.sol      # Strategy creation factory
 ├── OrderExecutor.sol       # Order execution logic
 ├── PositionTracker.sol     # Position tracking
 ├── FeeManager.sol          # Fee management
@@ -123,7 +123,7 @@ class ContractManager:
 
 #### **Core Contract Implementation:**
 
-**PackageManager.sol:**
+**StrategyManager.sol:**
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
@@ -132,8 +132,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract PackageManager is ReentrancyGuard, Ownable {
-    struct Package {
+contract StrategyManager is ReentrancyGuard, Ownable {
+    struct Strategy {
         uint256 id;
         string name;
         uint256 expectedReturn; // in basis points (1000 = 10%)
@@ -142,10 +142,10 @@ contract PackageManager is ReentrancyGuard, Ownable {
         uint256 maturityDate;
         uint256 totalValue;
         uint256 soldValue;
-        PackageDetails details;
+        StrategyDetails details;
     }
     
-    struct PackageDetails {
+    struct StrategyDetails {
         PolymarketOrder[] polymarketOrders;
         HedgeOrder[] hedgeOrders;
         uint256 expectedProfit;
@@ -168,42 +168,42 @@ contract PackageManager is ReentrancyGuard, Ownable {
     }
     
     struct UserPosition {
-        uint256 packageId;
+        uint256 strategyId;
         uint256 amount;
         uint256 purchaseTime;
         bool claimed;
     }
     
     // State variables
-    mapping(uint256 => Package) public packages;
+    mapping(uint256 => Strategy) public strategys;
     mapping(address => UserPosition[]) public userPositions;
-    mapping(uint256 => uint256) public packageSoldValue;
+    mapping(uint256 => uint256) public strategySoldValue;
     
     IERC20 public immutable usdc;
-    uint256 public nextPackageId = 1;
+    uint256 public nextStrategyId = 1;
     
     // Events
-    event PackageCreated(uint256 indexed packageId, string name, uint256 expectedReturn);
-    event PackagePurchased(uint256 indexed packageId, address indexed user, uint256 amount);
-    event OrdersExecuted(uint256 indexed packageId, address indexed user, bool success);
-    event PackageClaimed(uint256 indexed packageId, address indexed user, uint256 profit);
+    event StrategyCreated(uint256 indexed strategyId, string name, uint256 expectedReturn);
+    event StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 amount);
+    event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
+    event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 profit);
     
     constructor(address _usdc) {
         usdc = IERC20(_usdc);
     }
     
     // Bot-only functions
-    function createPackage(
+    function createStrategy(
         string memory name,
         uint256 expectedReturn,
         uint256 fee,
         uint256 maturityDate,
-        PackageDetails memory details
+        StrategyDetails memory details
     ) external onlyOwner returns (uint256) {
-        uint256 packageId = nextPackageId++;
+        uint256 strategyId = nextStrategyId++;
         
-        packages[packageId] = Package({
-            id: packageId,
+        strategys[strategyId] = Strategy({
+            id: strategyId,
             name: name,
             expectedReturn: expectedReturn,
             fee: fee,
@@ -214,44 +214,44 @@ contract PackageManager is ReentrancyGuard, Ownable {
             details: details
         });
         
-        emit PackageCreated(packageId, name, expectedReturn);
-        return packageId;
+        emit StrategyCreated(strategyId, name, expectedReturn);
+        return strategyId;
     }
     
     // User functions
-    function buyPackage(uint256 packageId, uint256 amount) 
+    function buyStrategy(uint256 strategyId, uint256 amount) 
         external 
         nonReentrant 
     {
-        Package storage package = packages[packageId];
-        require(package.active, "Package not active");
+        Strategy storage strategy = strategys[strategyId];
+        require(strategy.active, "Strategy not active");
         require(amount > 0, "Amount must be positive");
-        require(block.timestamp < package.maturityDate, "Package expired");
+        require(block.timestamp < strategy.maturityDate, "Strategy expired");
         
         // Transfer USDC from user
         usdc.transferFrom(msg.sender, address(this), amount);
         
         // Calculate fee
-        uint256 feeAmount = (amount * package.fee) / 10000;
+        uint256 feeAmount = (amount * strategy.fee) / 10000;
         uint256 netAmount = amount - feeAmount;
         
-        // Update package sold value
-        package.soldValue += netAmount;
+        // Update strategy sold value
+        strategy.soldValue += netAmount;
         
         // Create user position
         userPositions[msg.sender].push(UserPosition({
-            packageId: packageId,
+            strategyId: strategyId,
             amount: netAmount,
             purchaseTime: block.timestamp,
             claimed: false
         }));
         
-        emit PackagePurchased(packageId, msg.sender, amount);
+        emit StrategyPurchased(strategyId, msg.sender, amount);
     }
     
-    function claimPackage(uint256 packageId) external nonReentrant {
-        Package storage package = packages[packageId];
-        require(block.timestamp >= package.maturityDate, "Package not mature");
+    function claimStrategy(uint256 strategyId) external nonReentrant {
+        Strategy storage strategy = strategys[strategyId];
+        require(block.timestamp >= strategy.maturityDate, "Strategy not mature");
         
         // Find user position
         UserPosition[] storage positions = userPositions[msg.sender];
@@ -259,7 +259,7 @@ contract PackageManager is ReentrancyGuard, Ownable {
         bool found = false;
         
         for (uint256 i = 0; i < positions.length; i++) {
-            if (positions[i].packageId == packageId && !positions[i].claimed) {
+            if (positions[i].strategyId == strategyId && !positions[i].claimed) {
                 position = positions[i];
                 found = true;
                 break;
@@ -269,7 +269,7 @@ contract PackageManager is ReentrancyGuard, Ownable {
         require(found, "Position not found or already claimed");
         
         // Calculate profit (simplified - in reality would be based on actual results)
-        uint256 profit = (position.amount * package.expectedReturn) / 10000;
+        uint256 profit = (position.amount * strategy.expectedReturn) / 10000;
         uint256 totalAmount = position.amount + profit;
         
         // Mark as claimed
@@ -278,16 +278,16 @@ contract PackageManager is ReentrancyGuard, Ownable {
         // Transfer funds to user
         usdc.transfer(msg.sender, totalAmount);
         
-        emit PackageClaimed(packageId, msg.sender, profit);
+        emit StrategyClaimed(strategyId, msg.sender, profit);
     }
     
     // Bridge functions
     function reportExecutionStatus(
-        uint256 packageId,
+        uint256 strategyId,
         address user,
         bool success
     ) external onlyOwner {
-        emit OrdersExecuted(packageId, user, success);
+        emit OrdersExecuted(strategyId, user, success);
     }
 }
 ```
@@ -296,7 +296,7 @@ contract PackageManager is ReentrancyGuard, Ownable {
 
 #### **Architecture:**
 ```typescript
-// packages/bridge/
+// strategys/bridge/
 ├── event-listener.ts       # Smart contract event monitoring
 ├── order-executor.ts       # Order execution logic
 ├── cross-chain-bridge.ts   # Cross-chain bridging
@@ -308,7 +308,7 @@ contract PackageManager is ReentrancyGuard, Ownable {
 
 **Event Listener:**
 ```typescript
-// packages/bridge/event-listener.ts
+// strategys/bridge/event-listener.ts
 import { ethers } from 'ethers';
 import { BlockscoutClient } from './blockscout-client';
 
@@ -330,41 +330,41 @@ export class EventListener {
     async startListening() {
         console.log('Starting event listener...');
         
-        // Listen for PackagePurchased events
-        this.contract.on('PackagePurchased', async (packageId, user, amount, event) => {
-            console.log(`Package ${packageId} purchased by ${user} for ${amount}`);
-            await this.handlePackagePurchase(packageId, user, amount);
+        // Listen for StrategyPurchased events
+        this.contract.on('StrategyPurchased', async (strategyId, user, amount, event) => {
+            console.log(`Strategy ${strategyId} purchased by ${user} for ${amount}`);
+            await this.handleStrategyPurchase(strategyId, user, amount);
         });
         
-        // Listen for package creation events
-        this.contract.on('PackageCreated', async (packageId, name, expectedReturn) => {
-            console.log(`New package created: ${packageId} - ${name}`);
-            await this.updatePackageCache(packageId);
+        // Listen for strategy creation events
+        this.contract.on('StrategyCreated', async (strategyId, name, expectedReturn) => {
+            console.log(`New strategy created: ${strategyId} - ${name}`);
+            await this.updateStrategyCache(strategyId);
         });
     }
     
-    private async handlePackagePurchase(
-        packageId: number,
+    private async handleStrategyPurchase(
+        strategyId: number,
         user: string,
         amount: bigint
     ) {
         try {
-            // Get package details
-            const packageDetails = await this.getPackageDetails(packageId);
+            // Get strategy details
+            const strategyDetails = await this.getStrategyDetails(strategyId);
             
             // Execute orders
             const executor = new OrderExecutor();
-            const success = await executor.executeOrders(packageDetails, user, amount);
+            const success = await executor.executeOrders(strategyDetails, user, amount);
             
             // Report status back to contract
             const reporter = new StatusReporter();
-            await reporter.reportExecutionStatus(packageId, user, success);
+            await reporter.reportExecutionStatus(strategyId, user, success);
             
         } catch (error) {
-            console.error(`Error handling package purchase: ${error}`);
+            console.error(`Error handling strategy purchase: ${error}`);
             // Report failure
             const reporter = new StatusReporter();
-            await reporter.reportExecutionStatus(packageId, user, false);
+            await reporter.reportExecutionStatus(strategyId, user, false);
         }
     }
 }
@@ -372,7 +372,7 @@ export class EventListener {
 
 **Order Executor:**
 ```typescript
-// packages/bridge/order-executor.ts
+// strategys/bridge/order-executor.ts
 import { PolymarketClient } from './polymarket-client';
 import { GMXClient } from './gmx-client';
 import { CrossChainBridge } from './cross-chain-bridge';
@@ -389,14 +389,14 @@ export class OrderExecutor {
     }
     
     async executeOrders(
-        packageDetails: PackageDetails,
+        strategyDetails: StrategyDetails,
         user: string,
         amount: bigint
     ): Promise<boolean> {
         try {
             // 1. Execute Polymarket orders
             const polymarketSuccess = await this.executePolymarketOrders(
-                packageDetails.polymarketOrders,
+                strategyDetails.polymarketOrders,
                 user,
                 amount
             );
@@ -417,7 +417,7 @@ export class OrderExecutor {
             
             // 3. Execute hedge orders on GMX
             const hedgeSuccess = await this.executeHedgeOrders(
-                packageDetails.hedgeOrders,
+                strategyDetails.hedgeOrders,
                 user
             );
             
@@ -474,7 +474,7 @@ export class OrderExecutor {
 
 **Cross-Chain Bridge:**
 ```typescript
-// packages/bridge/cross-chain-bridge.ts
+// strategys/bridge/cross-chain-bridge.ts
 import { StargateClient } from '@layerzerolabs/stargate-sdk';
 
 export class CrossChainBridge {
@@ -514,11 +514,11 @@ export class CrossChainBridge {
 
 #### **Architecture:**
 ```typescript
-// packages/nextjs/app/
-├── packages/
-│   ├── page.tsx           # Package marketplace
+// strategys/nextjs/app/
+├── strategys/
+│   ├── page.tsx           # Strategy marketplace
 │   ├── [id]/
-│   │   ├── page.tsx       # Package details
+│   │   ├── page.tsx       # Strategy details
 │   │   └── buy/
 │   │       └── page.tsx   # Purchase flow
 ├── dashboard/
@@ -526,38 +526,38 @@ export class CrossChainBridge {
 │   └── positions/
 │       └── page.tsx       # Position management
 └── api/
-    ├── packages/
-    │   └── route.ts       # Package API
+    ├── strategys/
+    │   └── route.ts       # Strategy API
     └── positions/
         └── route.ts       # Position API
 ```
 
 #### **Key Components:**
 
-**Package Marketplace:**
+**Strategy Marketplace:**
 ```typescript
-// packages/nextjs/app/packages/page.tsx
+// strategys/nextjs/app/strategys/page.tsx
 'use client';
 
-import { usePackages } from '@/hooks/usePackages';
-import { PackageCard } from '@/components/PackageCard';
-import { PackageFilters } from '@/components/PackageFilters';
+import { useStrategys } from '@/hooks/useStrategys';
+import { StrategyCard } from '@/components/StrategyCard';
+import { StrategyFilters } from '@/components/StrategyFilters';
 
-export default function PackagesPage() {
-    const { packages, loading, error } = usePackages();
+export default function StrategysPage() {
+    const { strategys, loading, error } = useStrategys();
     
-    if (loading) return <div>Loading packages...</div>;
-    if (error) return <div>Error loading packages: {error.message}</div>;
+    if (loading) return <div>Loading strategys...</div>;
+    if (error) return <div>Error loading strategys: {error.message}</div>;
     
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Available Packages</h1>
+            <h1 className="text-3xl font-bold mb-8">Available Strategys</h1>
             
-            <PackageFilters />
+            <StrategyFilters />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {packages.map((package) => (
-                    <PackageCard key={package.id} package={package} />
+                {strategys.map((strategy) => (
+                    <StrategyCard key={strategy.id} strategy={strategy} />
                 ))}
             </div>
         </div>
@@ -565,26 +565,26 @@ export default function PackagesPage() {
 }
 ```
 
-**Package Card Component:**
+**Strategy Card Component:**
 ```typescript
-// packages/nextjs/components/PackageCard.tsx
+// strategys/nextjs/components/StrategyCard.tsx
 'use client';
 
 import { useState } from 'react';
-import { useBuyPackage } from '@/hooks/useBuyPackage';
+import { useBuyStrategy } from '@/hooks/useBuyStrategy';
 
-interface PackageCardProps {
-    package: Package;
+interface StrategyCardProps {
+    strategy: Strategy;
 }
 
-export function PackageCard({ package: pkg }: PackageCardProps) {
+export function StrategyCard({ strategy: pkg }: StrategyCardProps) {
     const [isBuying, setIsBuying] = useState(false);
-    const { buyPackage } = useBuyPackage();
+    const { buyStrategy } = useBuyStrategy();
     
     const handleBuy = async () => {
         setIsBuying(true);
         try {
-            await buyPackage(pkg.id, 1000); // 1000 USDC
+            await buyStrategy(pkg.id, 1000); // 1000 USDC
         } catch (error) {
             console.error('Purchase failed:', error);
         } finally {
@@ -617,7 +617,7 @@ export function PackageCard({ package: pkg }: PackageCardProps) {
                 disabled={isBuying || !pkg.active}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-                {isBuying ? 'Processing...' : 'Buy Package'}
+                {isBuying ? 'Processing...' : 'Buy Strategy'}
             </button>
         </div>
     );
@@ -626,7 +626,7 @@ export function PackageCard({ package: pkg }: PackageCardProps) {
 
 **User Dashboard:**
 ```typescript
-// packages/nextjs/app/dashboard/page.tsx
+// strategys/nextjs/app/dashboard/page.tsx
 'use client';
 
 import { useUserPositions } from '@/hooks/useUserPositions';
@@ -683,7 +683,7 @@ LAYERZERO_API_KEY=your_api_key
 yarn install
 
 # Set up Python environment
-cd packages/python
+cd strategys/python
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -706,7 +706,7 @@ yarn hardhat test
 ### **Day 2: Bridge System**
 ```bash
 # Deploy bridge service
-cd packages/bridge
+cd strategys/bridge
 npm run build
 npm run start:dev
 ```
@@ -723,4 +723,4 @@ yarn start
 
 ---
 
-**This technical specification provides the complete implementation details for the PolyHedge package system. Each component is designed to work independently while integrating seamlessly with the others.**
+**This technical specification provides the complete implementation details for the PolyHedge strategy system. Each component is designed to work independently while integrating seamlessly with the others.**

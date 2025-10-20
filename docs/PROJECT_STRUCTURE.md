@@ -16,15 +16,15 @@ polyhedge/
 │   ├── refined_product_ideas.md      # 4 product alternatives
 │   ├── SYSTEM_FLOW.md                # End-to-end system flow
 │   └── VERDICT.md                    # Direct answers to questions
-├── 📁 packages/                      # Monorepo packages
-│   ├── 📁 hardhat/                   # Smart contracts package
+├── 📁 strategys/                      # Monorepo strategys
+│   ├── 📁 hardhat/                   # Smart contracts strategy
 │   │   ├── contracts/                # Solidity contracts
 │   │   ├── deploy/                   # Deployment scripts
 │   │   ├── test/                     # Contract tests
 │   │   ├── scripts/                  # Utility scripts
-│   │   ├── package.json              # Package configuration
+│   │   ├── strategy.json              # Strategy configuration
 │   │   └── hardhat.config.ts         # Hardhat configuration
-│   ├── 📁 nextjs/                    # Frontend application package
+│   ├── 📁 nextjs/                    # Frontend application strategy
 │   │   ├── app/                      # Next.js app router
 │   │   ├── components/               # React components
 │   │   ├── hooks/                    # Custom hooks
@@ -32,9 +32,9 @@ polyhedge/
 │   │   ├── services/                 # External services
 │   │   ├── utils/                    # Utility functions
 │   │   ├── styles/                   # CSS styles
-│   │   ├── package.json              # Package configuration
+│   │   ├── strategy.json              # Strategy configuration
 │   │   └── next.config.ts            # Next.js configuration
-│   └── 📁 python/                    # Python analysis package
+│   └── 📁 python/                    # Python analysis strategy
 │       ├── analysis/                 # Mathematical analysis
 │       │   ├── __init__.py
 │       │   └── verify_math.py        # Complete mathematical verification
@@ -53,14 +53,14 @@ polyhedge/
 │       ├── tests/                    # Test suite
 │       │   ├── __init__.py
 │       │   └── test_pricing.py       # Pricing engine tests
-│       ├── package.json              # Package metadata
+│       ├── strategy.json              # Strategy metadata
 │       ├── requirements.txt          # Python dependencies
-│       └── README.md                 # Package documentation
+│       └── README.md                 # Strategy documentation
 ├── 📁 scripts/                       # Utility scripts
 │   └── __init__.py
 ├── 📄 README.md                      # Main project documentation
-├── 📄 (no root requirements.txt)     # Python deps in packages/python/requirements.txt
-├── 📄 package.json                   # Root package configuration
+├── 📄 (no root requirements.txt)     # Python deps in strategys/python/requirements.txt
+├── 📄 strategy.json                   # Root strategy configuration
 ├── 📄 yarn.lock                      # Dependency lock file
 ├── 📄 setup.sh                       # Automated setup script
 ├── 📄 .gitignore                     # Git ignore rules
@@ -91,45 +91,45 @@ polyhedge/
 - `refined_product_ideas.md` - 4 viable product alternatives
 - `SYSTEM_FLOW.md` - End-to-end system flow documentation
 
-### 🐍 Python Package (`packages/python/`)
+### 🐍 Python Strategy (`strategys/python/`)
 
-**Analysis Module (`packages/python/analysis/`):**
+**Analysis Module (`strategys/python/analysis/`):**
 
 - `verify_math.py` - Complete mathematical verification with Monte Carlo simulations
 
-**Pricing Module (`packages/python/pricing/`):**
+**Pricing Module (`strategys/python/pricing/`):**
 
 - `theoretical_engine.py` - Black-Scholes barrier option pricing engine
 
-**Scanner Module (`packages/python/scanner/`):**
+**Scanner Module (`strategys/python/scanner/`):**
 
 - `inefficiency_detector.py` - Real-time market inefficiency detection
 
-**Portfolio Module (`packages/python/portfolio/`):**
+**Portfolio Module (`strategys/python/portfolio/`):**
 
 - `position_sizer.py` - Kelly Criterion position sizing and risk management
 
-**Execution Module (`packages/python/execution/`):**
+**Execution Module (`strategys/python/execution/`):**
 
 - Future: Lit Protocol integration and cross-chain execution
 
-**Markets Module (`packages/python/markets/`):**
+**Markets Module (`strategys/python/markets/`):**
 
 - Future: Polymarket, GMX, Hyperliquid integrations
 
-**Hedging Module (`packages/python/hedging/`):**
+**Hedging Module (`strategys/python/hedging/`):**
 
 - Future: DEX perpetual hedging and risk management
 
-### 🏗️ Scaffold-ETH 2 (`packages/`)
+### 🏗️ Scaffold-ETH 2 (`strategys/`)
 
-**Hardhat Package (`packages/hardhat/`):**
+**Hardhat Strategy (`strategys/hardhat/`):**
 
 - Smart contract development and deployment
 - Contract testing and verification
 - Deployment scripts and utilities
 
-**Next.js Package (`packages/nextjs/`):**
+**Next.js Strategy (`strategys/nextjs/`):**
 
 - Frontend application with React and Next.js
 - Wallet integration with RainbowKit
@@ -148,7 +148,7 @@ polyhedge/
 
 ```bash
 # Run mathematical verification
-cd packages/python
+cd strategys/python
 python analysis/verify_math.py
 ```
 
@@ -187,13 +187,13 @@ yarn deploy
 yarn start
 
 # Terminal 4: Run Python analysis
-cd packages/python
+cd strategys/python
 python analysis/verify_math.py
 ```
 
 ## 📦 Dependencies
 
-### Python Dependencies (`packages/python/requirements.txt`)
+### Python Dependencies (`strategys/python/requirements.txt`)
 
 - `numpy` - Numerical computations
 - `scipy` - Scientific computing
@@ -201,11 +201,11 @@ python analysis/verify_math.py
 - `matplotlib` - Plotting and visualization
 - `pytest` - Testing framework
 
-### Node.js Dependencies (`package.json`)
+### Node.js Dependencies (`strategy.json`)
 
 - `@se-2/hardhat` - Smart contract development
 - `@se-2/nextjs` - Frontend application
-- `yarn` - Package manager
+- `yarn` - Strategy manager
 
 ## 🎯 File Naming Conventions
 
@@ -237,7 +237,7 @@ python analysis/verify_math.py
 ### Development Configuration
 
 - `yarn.lock` - Dependency lock file
-- `package.json` - Node.js project configuration
+- `strategy.json` - Node.js project configuration
 - `requirements.txt` - Python dependencies
 
 ### Code Quality
