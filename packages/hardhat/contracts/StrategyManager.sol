@@ -5,6 +5,18 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+// Interface to HedgeExecutor on the same chain
+interface IHedgeExecutor {
+    function createHedgeOrder(
+        uint256 strategyId,
+        address user,
+        string calldata asset,
+        bool isLong,
+        uint256 amount,
+        uint256 maxSlippageBps
+    ) external;
+}
+
 /**
  * @title StrategyManager
  * @notice Minimal contract to create, sell, and settle hedging strategies.
@@ -60,6 +72,9 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     mapping(uint256 => Strategy) public strategies;
     // user => positions
     mapping(address => UserPosition[]) public userPositions;
+    
+    // HedgeExecutor on same chain (Arbitrum)
+    IHedgeExecutor public hedgeExecutor;
 
     // Events used by the bridge/backend to coordinate off-chain execution
     event StrategyCreated(uint256 indexed strategyId, string name, uint256 maturityTs);
@@ -67,12 +82,12 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
     event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 payoutAmount);
     event StrategySettled(uint256 indexed strategyId, uint256 payoutPerUSDC);
-    // New: signal to bridge/HedgeExecutor on Arbitrum
-    event HedgeOrdersTriggered(uint256 indexed strategyId, address indexed user, HedgeOrder[] hedgeOrders);
 
-    constructor(address _usdc) Ownable(msg.sender) {
+    constructor(address _usdc, address _hedgeExecutor) Ownable(msg.sender) {
         require(_usdc != address(0), "USDC address required");
+        require(_hedgeExecutor != address(0), "HedgeExecutor address required");
         usdc = IERC20(_usdc);
+        hedgeExecutor = IHedgeExecutor(_hedgeExecutor);
     }
 
     // ------------------
@@ -138,9 +153,11 @@ contract StrategyManager is Ownable, ReentrancyGuard {
 
         emit StrategyPurchased(strategyId, msg.sender, grossAmount, netAmount);
         
-        // Trigger hedge orders on Arbitrum via cross-chain messaging
-        // In production, LayerZero would handle this automatically
-        emit HedgeOrdersTriggered(strategyId, msg.sender, s.details.hedgeOrders);
+        // Trigger hedge orders on HedgeExecutor (same chain)
+        for (uint256 i = 0; i < s.details.hedgeOrders.length; i++) {
+            HedgeOrder storage ho = s.details.hedgeOrders[i];
+            hedgeExecutor.createHedgeOrder(strategyId, msg.sender, ho.asset, ho.isLong, ho.amount, ho.maxSlippageBps);
+        }
     }
 
     function claimStrategy(uint256 strategyId) external nonReentrant {

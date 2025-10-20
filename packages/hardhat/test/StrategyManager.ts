@@ -5,6 +5,11 @@ describe("StrategyManager", function () {
   async function deployFixture() {
     const [, alice] = await ethers.getSigners();
 
+    // Deploy HedgeExecutor first
+    const HedgeExecutor = await ethers.getContractFactory("HedgeExecutor");
+    const hedgeExecutor = await HedgeExecutor.deploy();
+    await hedgeExecutor.waitForDeployment();
+
     // Deploy a mock USDC (minimal ERC20) for testing using a built-in Mock if available
     const ERC20Mock = await ethers.getContractFactory("contracts/test/MockERC20.sol:MockERC20");
     const usdcDeployment = await ERC20Mock.deploy("USD Coin", "USDC", 6);
@@ -13,9 +18,13 @@ describe("StrategyManager", function () {
     const usdcMock = await ethers.getContractAt("contracts/test/MockERC20.sol:MockERC20", usdcAddr);
     const usdc = await ethers.getContractAt("IERC20", usdcAddr);
 
+    // Deploy StrategyManager with HedgeExecutor address
     const StrategyManager = await ethers.getContractFactory("StrategyManager");
-    const manager = await StrategyManager.deploy(await usdc.getAddress());
+    const manager = await StrategyManager.deploy(await usdc.getAddress(), await hedgeExecutor.getAddress());
     await manager.waitForDeployment();
+
+    // Tell HedgeExecutor about StrategyManager
+    await hedgeExecutor.setStrategyManager(await manager.getAddress());
 
     // Mint USDC to Alice and approve
     await usdcMock.mint(alice.address, 1_000_000_000); // 1,000 USDC with 6 decimals

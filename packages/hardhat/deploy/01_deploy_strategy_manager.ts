@@ -1,26 +1,36 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
-// USDC placeholder; replace per-network if needed
-const USDC_BY_NETWORK: Record<string, string> = {
-  hardhat: "0x0000000000000000000000000000000000000001", // dummy for local
-  localhost: "0x0000000000000000000000000000000000000001",
-  polygonAmoy: "0x6a2a6aC3F2a7C0B8A1A1Ff000000000000000000", // TODO: replace
-};
+// USDC on Arbitrum
+const USDC_ARBITRUM = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, network } = hre;
-  const { deploy, log } = deployments;
+  const { deploy, get, log } = deployments;
 
   const { deployer } = await getNamedAccounts();
   const chain = network.name;
 
-  const usdc = USDC_BY_NETWORK[chain] ?? USDC_BY_NETWORK["hardhat"];
-  log(`Deploying StrategyManager on ${chain} with USDC: ${usdc}`);
+  if (chain !== "arbitrum" && chain !== "arbitrumSepolia") {
+    log(`⏭️  Skipping StrategyManager deployment. Only deploy on Arbitrum.`);
+    return;
+  }
+
+  // Get HedgeExecutor address (must be deployed first)
+  let hedgeExecutorAddress: string;
+  try {
+    const hedgeExecutor = await get("HedgeExecutor");
+    hedgeExecutorAddress = hedgeExecutor.address;
+  } catch (e) {
+    log("❌ HedgeExecutor not deployed yet. Deploy it first.");
+    throw e;
+  }
+
+  log(`Deploying StrategyManager on ${chain} with HedgeExecutor: ${hedgeExecutorAddress}`);
 
   await deploy("StrategyManager", {
     from: deployer,
-    args: [usdc],
+    args: [USDC_ARBITRUM, hedgeExecutorAddress],
     log: true,
     autoMine: true,
     waitConfirmations: 1,
@@ -29,3 +39,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 func.tags = ["StrategyManager"];
+func.dependencies = ["HedgeExecutor"];

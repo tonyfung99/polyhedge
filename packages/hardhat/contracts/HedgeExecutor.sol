@@ -27,12 +27,22 @@ contract HedgeExecutor is Ownable {
     event HedgeOrderClosed(uint256 indexed strategyId, uint256 realizedPnL);
     event MessageReceived(uint256 indexed strategyId, address indexed user);
 
+    address public strategyManager;
+
     constructor() Ownable(msg.sender) {}
 
     /**
-     * @notice Receive cross-chain message from StrategyManager (Polygon)
-     *         In production, this would be called by a LayerZero endpoint.
-     *         For MVP, only owner can call.
+     * @notice Set StrategyManager address (can only be called once by owner)
+     */
+    function setStrategyManager(address _strategyManager) external onlyOwner {
+        require(_strategyManager != address(0), "invalid address");
+        require(strategyManager == address(0), "already set");
+        strategyManager = _strategyManager;
+    }
+
+    /**
+     * @notice Receive hedge order from StrategyManager
+     *         Can only be called by StrategyManager
      */
     function createHedgeOrder(
         uint256 strategyId,
@@ -41,7 +51,8 @@ contract HedgeExecutor is Ownable {
         bool isLong,
         uint256 amount,
         uint256 maxSlippageBps
-    ) external onlyOwner {
+    ) external {
+        require(msg.sender == strategyManager, "only StrategyManager");
         require(amount > 0, "amount=0");
 
         hedgeOrders[strategyId] = HedgeOrder({

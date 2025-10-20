@@ -725,3 +725,26 @@ yarn start
 ---
 
 **This technical specification provides the complete implementation details for the PolyHedge strategy system. Each component is designed to work independently while integrating seamlessly with the others.**
+
+## Deployment
+
+### **Network Configuration**
+
+**Arbitrum (Primary Chain):**
+- StrategyManager.sol - User-facing contract for strategy lifecycle
+- HedgeExecutor.sol - On-chain GMX order execution
+- USDC token for all user funds and settlements
+
+**Off-Chain Bridge/Backend:**
+- Listen to StrategyManager events (StrategyPurchased, StrategySettled)
+- Execute Polymarket CLOB orders via API
+- Close Polymarket positions at maturity
+- Send settlement data back to StrategyManager
+
+### **Deployment Steps**
+
+1. Deploy HedgeExecutor on Arbitrum
+2. Deploy StrategyManager on Arbitrum with HedgeExecutor address
+3. Call `setStrategyManager()` on HedgeExecutor to enable callback
+4. Deploy bridge backend to listen and execute Polymarket orders
+5. Test full flow on testnet (Arbitrum Sepolia)

@@ -9,16 +9,15 @@ This document outlines the refined implementation plan for PolyHedge, focusing o
 ### **High-Level Flow:**
 
 ```
-User on Polygon → StrategyManager (Polygon) → LayerZero → HedgeExecutor (Arbitrum)
-    ↓                    ↓                                        ↓
-Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
-                  (via bridge/API)                 (on-chain)
+User on Arbitrum → StrategyManager (Arbitrum) → HedgeExecutor (Arbitrum)
+    ↓                    ↓                              ↓
+Buy Strategy       Execute GMX orders           Execute Polymarket orders
+                   (on-chain)                   (bridge/API coordination)
 ```
 
 ### **Networks:**
-- **Polygon**: StrategyManager (user-facing, fund management)
-- **Arbitrum**: HedgeExecutor (GMX hedge execution)
-- **Off-chain Bridge**: Polymarket CLOB order execution
+- **Arbitrum Only**: StrategyManager + HedgeExecutor (all on-chain)
+- **Off-chain Bridge**: Coordinates Polymarket CLOB orders (API)
 
 ## 📋 Component Breakdown
 
@@ -35,12 +34,12 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 
 ### **2. Smart Contract** 📜
 
-**Purpose:** Fund management and strategy lifecycle (on Polygon)
+**Purpose:** Fund management and strategy lifecycle (on Arbitrum)
 
 **Core Functions:**
 - Strategy creation and management
 - User USDC deposit/withdrawal
-- Cross-chain messaging to Arbitrum (via LayerZero)
+- GMX hedge order coordination
 - Settlement and payout distribution
 
 ### **3. Hedge Executor** 🌉
@@ -48,7 +47,7 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 **Purpose:** On-chain GMX hedge order execution (on Arbitrum)
 
 **Core Functions:**
-- Receive cross-chain messages from Polygon
+- Receive hedge order data from StrategyManager
 - Execute GMX perpetual orders directly on-chain
 - Track hedge positions
 - Close positions at maturity
@@ -58,6 +57,7 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 **Purpose:** Off-chain order coordination for Polymarket
 
 **Responsibilities:**
+
 - Listen to StrategyPurchased events
 - Execute Polymarket CLOB orders via API
 - Monitor and close positions at maturity
@@ -68,6 +68,7 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 **Purpose:** User interface and portfolio management (Polygon RPC)
 
 **Key Pages:**
+
 - Strategy Marketplace: Browse and buy strategies
 - Dashboard: View owned positions and PNL
 - Claim Interface: Claim mature strategies
@@ -87,15 +88,14 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 ### **Strategy Purchase Flow:**
 
 ```
-1. User browses strategies on frontend (Polygon)
+1. User browses strategies on frontend (Arbitrum RPC)
 2. User selects strategy and clicks "Buy"
-3. User approves USDC spending
-4. Smart contract processes purchase (Polygon)
-5. Contract emits StrategyPurchased event (Polygon)
-6. LayerZero relayer sends message to Arbitrum
-7. HedgeExecutor receives message → calls GMX.createOrder() (Arbitrum, on-chain)
-8. Bridge/backend listens for StrategyPurchased → places Polymarket orders (off-chain)
-9. User position is tracked on Polygon
+3. User approves USDC spending (Arbitrum)
+4. Smart contract processes purchase (StrategyManager on Arbitrum)
+5. Contract emits StrategyPurchased event (Arbitrum)
+6. HedgeExecutor receives order data and creates GMX orders (on-chain, Arbitrum)
+7. Bridge/backend listens for StrategyPurchased → places Polymarket orders (off-chain)
+8. User position is tracked on Arbitrum
 ```
 
 ### **Strategy Maturity & Settlement Flow:**
@@ -103,12 +103,12 @@ Buy Strategy      Place Polymarket orders          Execute GMX hedge orders
 ```
 1. Strategy reaches maturity date
 2. Bridge/backend closes Polymarket positions
-3. HedgeExecutor (or backend) closes GMX positions
+3. HedgeExecutor closes GMX positions (on-chain, Arbitrum)
 4. Compute realized PnL: (finalValue - initialValue) / initialValue
 5. Calculate payoutPerUSDC = (principal + PnL) / principal
-6. Call settleStrategy(strategyId, payoutPerUSDC) on Polygon
+6. Call settleStrategy(strategyId, payoutPerUSDC) on StrategyManager (Arbitrum)
 7. User visits dashboard and claims mature strategy
-8. Smart contract transfers payout to user
+8. Smart contract transfers payout to user (USDC on Arbitrum)
 ```
 
 ## 🛠️ Technical Stack
