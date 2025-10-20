@@ -105,17 +105,9 @@ Visit `http://localhost:3000` to see the application.
 3. **[Technical Specification](docs/TECHNICAL_SPECIFICATION.md)** - Detailed implementation guide
 4. **[Team Assignments](docs/TEAM_ASSIGNMENTS.md)** - Development team structure
 
-### 📊 Analysis Results
-
-- **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Key findings and recommendations
-- **[Arbitrage Strategy](docs/ARBITRAGE_STRATEGY_DETAILED.md)** - Complete mathematical breakdown
-- **[Example Walkthrough](docs/EXAMPLE_WALKTHROUGH.md)** - Real $10k portfolio example
-- **[Product Ideas](docs/refined_product_ideas.md)** - 4 viable product alternatives
-
 ### 🛠️ Technical Docs
 
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Detailed project organization
-- **[System Flow](docs/SYSTEM_FLOW.md)** - End-to-end system design
 
 ## 🎯 Key Features
 
