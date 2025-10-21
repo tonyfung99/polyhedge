@@ -72,17 +72,17 @@ contract StrategyManager is Ownable, ReentrancyGuard {
     mapping(uint256 => Strategy) public strategies;
     // user => positions
     mapping(address => UserPosition[]) public userPositions;
-    
+
     // HedgeExecutor on same chain (Arbitrum)
     IHedgeExecutor public hedgeExecutor;
 
     // Events used by the bridge/backend to coordinate off-chain execution
     event StrategyCreated(uint256 indexed strategyId, string name, uint256 maturityTs);
     event StrategyPurchased(
-        uint256 indexed strategyId, 
-        address indexed user, 
-        uint256 grossAmount, 
-        uint256 netAmount  // Amount to bridge to Polygon for Polymarket
+        uint256 indexed strategyId,
+        address indexed user,
+        uint256 grossAmount,
+        uint256 netAmount // Amount to bridge to Polygon for Polymarket
     );
     event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
     event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 payoutAmount);
@@ -157,7 +157,7 @@ contract StrategyManager is Ownable, ReentrancyGuard {
         );
 
         emit StrategyPurchased(strategyId, msg.sender, grossAmount, netAmount);
-        
+
         // Trigger hedge orders on HedgeExecutor (same chain)
         for (uint256 i = 0; i < s.details.hedgeOrders.length; i++) {
             HedgeOrder storage ho = s.details.hedgeOrders[i];

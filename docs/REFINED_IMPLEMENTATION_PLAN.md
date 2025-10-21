@@ -16,9 +16,10 @@ Buy Strategy       Execute GMX orders         Transfer USDC    Execute Polymarke
 ```
 
 ### **Networks:**
+
 - **Arbitrum**: StrategyManager + HedgeExecutor (user funds, GMX hedging)
 - **Polygon**: PolygonReceiver contract (Polymarket USDC settlement)
-- **Off-chain Bridge Service**: 
+- **Off-chain Bridge Service**:
   - Coordinates token transfers (LayerZero/Stargate)
   - Executes Polymarket orders on Polygon
   - Listens to events on both chains
@@ -41,6 +42,7 @@ Buy Strategy       Execute GMX orders         Transfer USDC    Execute Polymarke
 **Purpose:** Fund management and strategy lifecycle (on Arbitrum)
 
 **Core Functions:**
+
 - Strategy creation and management
 - User USDC deposit/withdrawal
 - GMX hedge order coordination
@@ -51,6 +53,7 @@ Buy Strategy       Execute GMX orders         Transfer USDC    Execute Polymarke
 **Purpose:** On-chain GMX hedge order execution (on Arbitrum)
 
 **Core Functions:**
+
 - Receive hedge order data from StrategyManager
 - Execute GMX perpetual orders directly on-chain
 - Track hedge positions
@@ -116,16 +119,16 @@ Buy Strategy       Execute GMX orders         Transfer USDC    Execute Polymarke
 ```
 1. Strategy reaches maturity date on both chains
 2. Bridge/backend orchestrates dual-chain settlement:
-   
+
    On Polygon:
    a. Close Polymarket positions
    b. Collect final USDC balance
    c. Compute Polymarket PnL
-   
+
    On Arbitrum:
    d. HedgeExecutor closes GMX positions
    e. Compute GMX hedge PnL
-   
+
 3. Aggregate total realized PnL across both positions
 4. Calculate payoutPerUSDC = (principal + totalPnL) / principal
 5. Bridge service transfers profits back to Arbitrum (if any)
