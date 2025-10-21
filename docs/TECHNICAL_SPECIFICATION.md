@@ -728,23 +728,33 @@ yarn start
 
 ## Deployment
 
+### **Critical: Polymarket USDC Settlement Requirement**
+
+**IMPORTANT**: While Polymarket's API facilitates off-chain order placement, **all settlements occur on-chain on the Polygon network**. This means:
+- Orders placed via API need USDC custody **on Polygon** to settle
+- Users cannot directly access Polymarket from Arbitrum
+- We **must bridge USDC from Arbitrum to Polygon** for settlement
+
+**Architecture implication:** Deploy to BOTH Arbitrum and Polygon with cross-chain token bridge
+
 ### **Network Configuration**
 
-**Arbitrum (Primary Chain):**
-- StrategyManager.sol - User-facing contract for strategy lifecycle
-- HedgeExecutor.sol - On-chain GMX order execution
-- USDC token for all user funds and settlements
+**Arbitrum (User Interaction & GMX Hedging):**
+- StrategyManager.sol - User funds, strategy lifecycle
+- HedgeExecutor.sol - Direct GMX v2 order execution  
+- USDC token - User deposits collected here
+- Events emit: StrategyPurchased, StrategySettled, HedgeOrderCreated
 
-**Off-Chain Bridge/Backend:**
-- Listen to StrategyManager events (StrategyPurchased, StrategySettled)
-- Execute Polymarket CLOB orders via API
-- Close Polymarket positions at maturity
-- Send settlement data back to StrategyManager
+**Polygon (Polymarket Settlement):**
+- PolygonReceiver.sol - Receives bridged USDC from Arbitrum
+- Polymarket USDC custody contract - Holds positions
+- Polymarket order execution via API (against on-chain custody)
+- Events trigger: Polymarket order placement/closure
 
-### **Deployment Steps**
-
-1. Deploy HedgeExecutor on Arbitrum
-2. Deploy StrategyManager on Arbitrum with HedgeExecutor address
-3. Call `setStrategyManager()` on HedgeExecutor to enable callback
-4. Deploy bridge backend to listen and execute Polymarket orders
-5. Test full flow on testnet (Arbitrum Sepolia)
+**Off-Chain Bridge Service:**
+- Monitor StrategyPurchased events on Arbitrum (HyperSync)
+- Initiate LayerZero/Stargate cross-chain USDC transfer
+- Receive USDC confirmation on PolygonReceiver (Polygon)
+- Execute Polymarket orders on Polygon via API
+- Coordinate settlement across both chains
+- Transfer profits back to Arbitrum at settlement

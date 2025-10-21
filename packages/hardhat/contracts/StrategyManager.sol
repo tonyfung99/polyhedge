@@ -78,7 +78,12 @@ contract StrategyManager is Ownable, ReentrancyGuard {
 
     // Events used by the bridge/backend to coordinate off-chain execution
     event StrategyCreated(uint256 indexed strategyId, string name, uint256 maturityTs);
-    event StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount);
+    event StrategyPurchased(
+        uint256 indexed strategyId, 
+        address indexed user, 
+        uint256 grossAmount, 
+        uint256 netAmount  // Amount to bridge to Polygon for Polymarket
+    );
     event OrdersExecuted(uint256 indexed strategyId, address indexed user, bool success);
     event StrategyClaimed(uint256 indexed strategyId, address indexed user, uint256 payoutAmount);
     event StrategySettled(uint256 indexed strategyId, uint256 payoutPerUSDC);

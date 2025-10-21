@@ -9,15 +9,19 @@ This document outlines the refined implementation plan for PolyHedge, focusing o
 ### **High-Level Flow:**
 
 ```
-User on Arbitrum → StrategyManager (Arbitrum) → HedgeExecutor (Arbitrum)
-    ↓                    ↓                              ↓
-Buy Strategy       Execute GMX orders           Execute Polymarket orders
-                   (on-chain)                   (bridge/API coordination)
+User on Arbitrum → StrategyManager (Arbitrum) → Bridge (Dual-chain)
+    ↓                    ↓                           ↓              ↓
+Buy Strategy       Execute GMX orders         Transfer USDC    Execute Polymarket
+(pay USDC)         (on-chain, Arbitrum)       (Arbitrum→Poly)  orders (Polygon)
 ```
 
 ### **Networks:**
-- **Arbitrum Only**: StrategyManager + HedgeExecutor (all on-chain)
-- **Off-chain Bridge**: Coordinates Polymarket CLOB orders (API)
+- **Arbitrum**: StrategyManager + HedgeExecutor (user funds, GMX hedging)
+- **Polygon**: PolygonReceiver contract (Polymarket USDC settlement)
+- **Off-chain Bridge Service**: 
+  - Coordinates token transfers (LayerZero/Stargate)
+  - Executes Polymarket orders on Polygon
+  - Listens to events on both chains
 
 ## 📋 Component Breakdown
 
@@ -54,14 +58,17 @@ Buy Strategy       Execute GMX orders           Execute Polymarket orders
 
 ### **4. Bridge/Executor** 🔗
 
-**Purpose:** Off-chain order coordination for Polymarket
+**Purpose:** Cross-chain coordination for Polymarket settlement
 
-**Responsibilities:**
+**Key Responsibilities:**
 
-- Listen to StrategyPurchased events
-- Execute Polymarket CLOB orders via API
-- Monitor and close positions at maturity
-- Compute realized PnL and call settleStrategy
+- Listen to StrategyPurchased events on Arbitrum
+- **Bridge USDC from Arbitrum to Polygon** (using LayerZero/Stargate)
+- Execute Polymarket CLOB orders on Polygon (API)
+- Monitor Polymarket positions
+- Close positions at maturity on Polygon
+- Compute realized PnL and call settleStrategy on Arbitrum
+- Handle profit distribution back to Arbitrum
 
 ### **5. Frontend** 🖥️
 
@@ -92,23 +99,39 @@ Buy Strategy       Execute GMX orders           Execute Polymarket orders
 2. User selects strategy and clicks "Buy"
 3. User approves USDC spending (Arbitrum)
 4. Smart contract processes purchase (StrategyManager on Arbitrum)
+   - Takes net USDC from user (after 2% fee)
 5. Contract emits StrategyPurchased event (Arbitrum)
-6. HedgeExecutor receives order data and creates GMX orders (on-chain, Arbitrum)
-7. Bridge/backend listens for StrategyPurchased → places Polymarket orders (off-chain)
-8. User position is tracked on Arbitrum
+6. HedgeExecutor receives order data and creates GMX orders on-chain (Arbitrum)
+7. Bridge service listens for StrategyPurchased event:
+   a. Initiates cross-chain token transfer: USDC (Arbitrum → Polygon)
+   b. Receives USDC on PolygonReceiver contract (Polygon)
+   c. Executes Polymarket orders on Polygon using bridged USDC
+8. User position is now split across:
+   - Arbitrum: GMX hedge position (tracked)
+   - Polygon: Polymarket bet position (tracked)
 ```
 
 ### **Strategy Maturity & Settlement Flow:**
 
 ```
-1. Strategy reaches maturity date
-2. Bridge/backend closes Polymarket positions
-3. HedgeExecutor closes GMX positions (on-chain, Arbitrum)
-4. Compute realized PnL: (finalValue - initialValue) / initialValue
-5. Calculate payoutPerUSDC = (principal + PnL) / principal
+1. Strategy reaches maturity date on both chains
+2. Bridge/backend orchestrates dual-chain settlement:
+   
+   On Polygon:
+   a. Close Polymarket positions
+   b. Collect final USDC balance
+   c. Compute Polymarket PnL
+   
+   On Arbitrum:
+   d. HedgeExecutor closes GMX positions
+   e. Compute GMX hedge PnL
+   
+3. Aggregate total realized PnL across both positions
+4. Calculate payoutPerUSDC = (principal + totalPnL) / principal
+5. Bridge service transfers profits back to Arbitrum (if any)
 6. Call settleStrategy(strategyId, payoutPerUSDC) on StrategyManager (Arbitrum)
 7. User visits dashboard and claims mature strategy
-8. Smart contract transfers payout to user (USDC on Arbitrum)
+8. Smart contract transfers total payout to user (USDC on Arbitrum)
 ```
 
 ## 🛠️ Technical Stack

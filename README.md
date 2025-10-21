@@ -31,6 +31,51 @@ PolyHedge is an automated arbitrage platform that exploits pricing inefficiencie
 - **Risk**: Hedge-protected but not risk-free
 - **Capacity**: ~$100k AUM initially
 
+## 🏗️ System Architecture
+
+### Dual-Chain Design: Arbitrum + Polygon
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      USER (Any Network)                      │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Approve + Pay USDC
+                           ▼
+        ┌──────────────────────────────────────┐
+        │       ARBITRUM (Primary)             │
+        │  • StrategyManager (User funds)      │
+        │  • HedgeExecutor (GMX orders)        │
+        │  • USDC collection point             │
+        │                                       │
+        │  Fee: 2% (to keeper)                │
+        │  Net: 98% (to Polymarket via bridge) │
+        └────────────┬─────────────────────────┘
+                     │
+          ┌──────────┴──────────┐
+          │ Stargate Bridge     │
+          │ Transfer USDC       │
+          │ Arbitrum → Polygon  │
+          └──────────┬──────────┘
+                     │
+        ┌────────────▼──────────────────────┐
+        │    POLYGON (Settlement)           │
+        │  • PolygonReceiver (USDC custody) │
+        │  • Polymarket orders (on-chain)   │
+        │  • Final settlement               │
+        └────────────┬─────────────────────┘
+                     │
+          Bridge confirms & closes positions
+          Profits returned to Arbitrum
+```
+
+### Why Dual-Chain?
+
+1. **Arbitrum for Users**: Lower fees, better UX, GMX available
+2. **Polygon for Polymarket**: Required for on-chain settlement (Polymarket is Polygon-native)
+3. **Bridge Service**: Off-chain orchestration of USDC transfers and position management
+
+**Key Insight**: Even though Polymarket API is off-chain, settlements are **on-chain on Polygon**. We must bridge USDC there.
+
 ## 🏗️ Tech Stack
 
 ### Core Technologies
