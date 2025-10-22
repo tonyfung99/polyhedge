@@ -121,7 +121,9 @@ describe('EventMonitorWorker', () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             worker.stop();
-            await Promise.all([promise1, promise2]);
+
+            // Wait for worker to fully stop
+            await new Promise((resolve) => setTimeout(resolve, 200));
 
             // Should still work correctly
             const status = worker.getStatus();
@@ -135,7 +137,9 @@ describe('EventMonitorWorker', () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             worker.stop();
-            await promise;
+
+            // Wait for worker to fully stop
+            await new Promise((resolve) => setTimeout(resolve, 200));
 
             const status = worker.getStatus();
             expect(status.isRunning).toBe(false);

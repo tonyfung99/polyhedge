@@ -145,6 +145,11 @@ export class EventMonitorWorker {
         this.shouldStop = true;
         if (this.testModeInterval) {
             clearInterval(this.testModeInterval);
+            this.testModeInterval = undefined;
+            // In test mode, set isRunning to false immediately since there's no loop
+            if (this.testMode) {
+                this.isRunning = false;
+            }
         }
     }
 
@@ -199,7 +204,13 @@ export class EventMonitorWorker {
         });
 
         const simulateEvent = async () => {
-            if (this.shouldStop) return;
+            if (this.shouldStop) {
+                if (this.testModeInterval) {
+                    clearInterval(this.testModeInterval);
+                }
+                this.isRunning = false;
+                return;
+            }
 
             const mockEvent: StrategyPurchasedEvent = {
                 strategyId: 1n,
@@ -237,7 +248,9 @@ export class EventMonitorWorker {
         // Simulate first event immediately
         await simulateEvent();
 
-        // Then continue every 10 seconds
-        this.testModeInterval = setInterval(simulateEvent, 10000);
+        // Then continue every 10 seconds if not stopped
+        if (!this.shouldStop) {
+            this.testModeInterval = setInterval(simulateEvent, 10000);
+        }
     }
 }
