@@ -9,7 +9,8 @@ export function decodeStrategyPurchasedLog(log: Log, decoded: DecodedEvent | nul
     }
 
     const strategyId = decoded.indexed[0].val as bigint;
-    const user = (decoded.indexed[1].val as string | undefined) ?? ZERO_ADDRESS;
+    const userRaw = (decoded.indexed[1].val as string | undefined) ?? ZERO_ADDRESS;
+    const user = userRaw as `0x${string}`;
     const grossAmount = decoded.body[0].val as bigint;
     const netAmount = decoded.body[1].val as bigint;
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ClobClient, OrderType, Side } from '@polymarket/clob-client';
-import { Wallet } from 'ethers';
+import { Wallet, JsonRpcProvider } from 'ethers';
 import { AppConfig } from '../config/env.js';
 import { PolymarketOrderIntent } from '../types.js';
 import { createLogger } from '../utils/logger.js';
@@ -13,11 +13,12 @@ export class PolymarketClient {
     private readonly runWithLimit: ReturnType<typeof createLimiter>['run'];
 
     constructor(config: AppConfig) {
-        const signer = new Wallet(config.polymarketPrivateKey);
+        const provider = new JsonRpcProvider(config.polygonRpcUrl);
+        const signer = new Wallet(config.polymarketPrivateKey, provider);
         this.client = new ClobClient(
             config.polymarketHost,
             config.polymarketChainId,
-            signer,
+            signer as any, // CLOB client has older ethers type definitions
             undefined,
             config.polymarketSignatureType,
             config.polymarketFunderAddress,

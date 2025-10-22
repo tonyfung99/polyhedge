@@ -1,87 +1,56 @@
 import 'dotenv/config';
-import { Decoder, HypersyncClient } from '@envio-dev/hypersync-client';
-import { createMonitoringConfig } from './monitoring/config.js';
-import { decodeStrategyPurchasedLog } from './monitoring/decoder.js';
-import { createLogger } from './utils/logger.js';
-import { StrategyPurchaseExecutor } from './services/executor.js';
+import { startServer } from './server.js';
+import { EventMonitorWorker } from './workers/event-monitor.js';
 import { loadAppConfig } from './config/env.js';
+import { createLogger } from './utils/logger.js';
 
-const log = createLogger('bridge-main');
+const log = createLogger('main');
 
 async function bootstrap() {
-  const appConfig = loadAppConfig();
-  const monitoringConfig = createMonitoringConfig(appConfig);
+  try {
+    // Load configuration
+    const appConfig = loadAppConfig();
+    log.info('Configuration loaded successfully');
 
-  const client = HypersyncClient.new(monitoringConfig.clientConfig);
+    // Start API server
+    const port = Number(process.env.PORT) || 3001;
+    const host = process.env.HOST || '0.0.0.0';
+    const server = await startServer(port, host);
 
-  const decoder = Decoder.fromSignatures([
-    'StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount)',
-  ]);
+    // Start event monitor worker
+    const eventMonitor = new EventMonitorWorker(appConfig);
 
-  const executor = new StrategyPurchaseExecutor(appConfig);
+    // Run event monitor in the background
+    eventMonitor.start().catch((error) => {
+      log.error('Event monitor crashed', error);
+      process.exit(1);
+    });
 
-  log.info('Starting HyperSync monitoring loop', {
-    strategyManager: monitoringConfig.strategyManagerAddress,
-    fromBlock: monitoringConfig.startBlock,
-  });
+    // Graceful shutdown handling
+    const shutdown = async () => {
+      log.info('Shutting down gracefully...');
 
-  let nextBlock = monitoringConfig.startBlock;
+      // Stop event monitor
+      eventMonitor.stop();
 
-  while (true) {
-    const query = {
-      fromBlock: nextBlock,
-      toBlock: nextBlock + monitoringConfig.batchSize,
-      logs: [
-        {
-          address: [monitoringConfig.strategyManagerAddress],
-          topics: [
-            [monitoringConfig.topicStrategyPurchased],
-            [],
-            [],
-          ],
-        },
-      ],
-      fieldSelection: {
-        log: monitoringConfig.fields,
-      },
-    } as const;
+      // Close server
+      await server.close();
 
-    const response = await client.get(query);
-    const decodedLogs = await decoder.decodeLogs(response.data.logs);
+      log.info('Shutdown complete');
+      process.exit(0);
+    };
 
-    for (let i = 0; i < response.data.logs.length; i++) {
-      const logEntry = response.data.logs[i];
-      const decoded = decodedLogs[i];
-      const event = decodeStrategyPurchasedLog(logEntry, decoded);
-      if (!event) continue;
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
 
-      log.info('StrategyPurchased event detected', {
-        strategyId: event.strategyId.toString(),
-        user: event.user,
-        netAmount: event.netAmount.toString(),
-        blockNumber: event.blockNumber,
-      });
-
-      try {
-        await executor.handleStrategyPurchase(event);
-      } catch (error) {
-        log.error('Failed to execute strategy orders', {
-          error: (error as Error).message,
-          strategyId: event.strategyId.toString(),
-          user: event.user,
-        });
-      }
-    }
-
-    nextBlock = response.nextBlock;
-
-    await new Promise((resolve) => setTimeout(resolve, monitoringConfig.pollIntervalMs));
+    log.info('Bridge service started successfully', {
+      apiPort: port,
+      monitoringEnabled: true,
+    });
+  } catch (error) {
+    log.error('Failed to start bridge service', error);
+    process.exit(1);
   }
 }
 
-bootstrap().catch((error) => {
-  log.error('Fatal error in bridge executor', error);
-  process.exitCode = 1;
-});
-
-
+bootstrap();

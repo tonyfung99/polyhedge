@@ -1,357 +1,288 @@
 # Bridge Service Implementation Guide
 
-## Overview
+## Quick Start
 
-The bridge service coordinates cross-chain execution of strategies:
-1. **Arbitrum**: Listen to StrategyPurchased events
-2. **Stargate**: Bridge USDC from Arbitrum to Polygon
-3. **Polygon**: Execute Polymarket orders with bridged USDC
-4. **Settlement**: Coordinate final settlement across both chains
+The bridge service has been refactored into a Fastify-based API with background workers.
 
-## Current Status
+### Architecture Overview
 
-✅ **Already Implemented:**
-- HyperSync event monitoring on Arbitrum
-- StrategyPurchased event detection
-- Basic executor structure
-- Polymarket client scaffolding
-- Environment configuration
-
-⚠️ **Pending Implementation:**
-- Stargate USDC bridge integration
-- PolygonReceiver contract interaction
-- Polymarket settlement tracking
-- Dual-chain PnL coordination
-
-## Implementation Tasks
-
-### 1. Add Stargate Bridge Integration
-
-**File:** `packages/bridge/src/services/bridge.ts` (NEW)
-
-```typescript
-import { createPublicClient, createWalletClient } from 'viem';
-import { arbitrum, polygon } from 'viem/chains';
-
-export class StargateUsdcBridge {
-  private readonly arbitrumClient;
-  private readonly polygonClient;
-  private readonly relayerPrivateKey;
-
-  constructor(relayerPrivateKey: string) {
-    this.relayerPrivateKey = relayerPrivateKey;
-    this.arbitrumClient = createPublicClient({ chain: arbitrum });
-    this.polygonClient = createPublicClient({ chain: polygon });
-  }
-
-  /**
-   * Initiate USDC transfer from Arbitrum to Polygon via Stargate
-   * @param amount - Amount of USDC (with 6 decimals)
-   * @param recipient - PolygonReceiver contract address
-   * @returns - Bridge transaction hash
-   */
-  async bridgeUsdcToPoly(amount: bigint, recipient: string): Promise<string> {
-    // TODO: Implement Stargate starSend() call
-    // 1. Approve USDC to Stargate Router
-    // 2. Call starSend() with:
-    //    - dstChainId: Polygon chain ID
-    //    - srcPoolId: USDC pool ID on Arbitrum
-    //    - dstPoolId: USDC pool ID on Polygon
-    //    - amount
-    //    - minAmountLD (slippage protection)
-    //    - lzTxObj (gas limits)
-    //    - to: recipient (PolygonReceiver)
-    // 3. Return tx hash
-  }
-
-  /**
-   * Monitor Stargate bridge completion
-   * @param txHash - Bridge transaction hash
-   * @returns - True when bridge is confirmed on destination
-   */
-  async waitForBridgeCompletion(txHash: string): Promise<boolean> {
-    // TODO: Monitor for srcChainTxConfirmed event on Arbitrum
-    // Then listen for credit received on Polygon
-  }
-
-  /**
-   * Bridge profits back from Polygon to Arbitrum
-   * @param amount - Final USDC balance after settlement
-   * @param recipient - User address
-   */
-  async bridgeUsdcToArbitrum(amount: bigint, recipient: string): Promise<string> {
-    // TODO: Initiate return bridge from Polygon → Arbitrum
-  }
-}
+```
+┌─────────────────────────────────────────┐
+│         Fastify API Server              │
+│  - Health check endpoint                │
+│  - Service info endpoint                │
+│  - Future: Status/metrics endpoints     │
+└─────────────────────────────────────────┘
+                  │
+                  │ runs alongside
+                  │
+┌─────────────────────────────────────────┐
+│      Event Monitor Worker               │
+│                                         │
+│  HyperSync ──> Decode ──> Execute       │
+│    Loop         Logs      Strategies    │
+│                                         │
+│  ┌───────────────────────────────────┐ │
+│  │  StrategyPurchaseExecutor         │ │
+│  │  - Maps events to strategies      │ │
+│  │  - Builds Polymarket orders       │ │
+│  │  - Executes via CLOB client       │ │
+│  └───────────────────────────────────┘ │
+└─────────────────────────────────────────┘
 ```
 
-**Reference:** [Stargate Documentation](https://stargate.finance/developers)
+## File Structure
 
-### 2. Update Executor for Dual-Chain Coordination
+### Core Files
 
-**File:** `packages/bridge/src/services/executor.ts` (UPDATE)
+- **`src/index.ts`** - Main entry point
+  - Loads configuration
+  - Starts Fastify server
+  - Launches event monitor worker
+  - Handles graceful shutdown
 
-```typescript
-export class StrategyPurchaseExecutor {
-  private readonly bridge: StargateUsdcBridge;
-  private readonly polygonReceiver: PolygonReceiverClient;
+- **`src/server.ts`** - Fastify server setup
+  - Configures CORS
+  - Defines API routes
+  - Health check endpoint
 
-  async handleStrategyPurchase(event: StrategyPurchasedEvent) {
-    try {
-      // 1. Bridge USDC to Polygon
-      const bridgeTxHash = await this.bridge.bridgeUsdcToPoly(
-        event.netAmount,
-        this.polygonReceiver.address
-      );
-      
-      log.info('Initiated USDC bridge', { 
-        strategyId: event.strategyId, 
-        amount: event.netAmount,
-        txHash: bridgeTxHash 
-      });
+- **`src/workers/event-monitor.ts`** - Background worker
+  - Polls HyperSync for events
+  - Decodes `StrategyPurchased` logs
+  - Triggers strategy execution
+  - Handles errors and retries
 
-      // 2. Wait for bridge completion
-      await this.bridge.waitForBridgeCompletion(bridgeTxHash);
-      
-      log.info('USDC bridge completed', { 
-        strategyId: event.strategyId 
-      });
+### Services & Utilities
 
-      // 3. Signal PolygonReceiver that funds arrived
-      await this.polygonReceiver.recordUsdcReceived(
-        event.strategyId,
-        event.user,
-        event.netAmount
-      );
+- **`src/services/executor.ts`** - Strategy execution logic
+  - Maps events to strategy definitions
+  - Builds Polymarket order intents
+  - Coordinates order submission
 
-      // 4. Execute Polymarket orders on Polygon
-      const strategy = this.config.strategies.get(event.strategyId);
-      const intents = this.buildPolymarketOrderIntents(strategy, event.netAmount);
+- **`src/monitoring/`** - Event monitoring utilities
+  - `config.ts` - HyperSync query configuration
+  - `decoder.ts` - Event log decoding
 
-      for (const intent of intents) {
-        await this.polymarket.executeOrder(intent);
-      }
+- **`src/polymarket/client.ts`** - Polymarket integration
+  - CLOB client wrapper
+  - Order submission with retry logic
+  - Rate limiting
 
-      // 5. Record orders on PolygonReceiver for tracking
-      for (const order of strategy.polymarketOrders) {
-        await this.polygonReceiver.recordPolymarketOrder(
-          event.strategyId,
-          order.marketId,
-          order.isYes ? 'BUY' : 'SELL',
-          event.netAmount, // simplified - in reality calculate per order
-          0 // entry price from Polymarket API response
-        );
-      }
+- **`src/config/env.ts`** - Configuration management
+  - Environment variable validation (zod)
+  - Strategy definitions loading
+  - RPC and API endpoint setup
 
-      log.info('Strategy purchase fully executed', {
-        strategyId: event.strategyId,
-        user: event.user
-      });
+- **`src/utils/`** - Helper utilities
+  - `logger.ts` - Structured logging
+  - `promise.ts` - Async utilities (retry, timeout, concurrency)
 
-    } catch (error) {
-      log.error('Strategy execution failed', {
-        error: (error as Error).message,
-        strategyId: event.strategyId
-      });
-      throw error;
-    }
-  }
-}
-```
+## Environment Configuration
 
-### 3. Create PolygonReceiver Client
+### Required Variables
 
-**File:** `packages/bridge/src/services/polygonReceiverClient.ts` (NEW)
+```bash
+# API Server
+PORT=3001
+HOST=0.0.0.0
 
-```typescript
-import { createPublicClient, createWalletClient } from 'viem';
-import { polygon } from 'viem/chains';
-import { PolygonReceiver_ABI } from '../contracts/PolygonReceiver.js';
-
-export class PolygonReceiverClient {
-  private readonly publicClient;
-  private readonly walletClient;
-  public readonly address: string;
-
-  constructor(relayerPrivateKey: string, contractAddress: string) {
-    this.address = contractAddress;
-    this.publicClient = createPublicClient({ chain: polygon });
-    this.walletClient = createWalletClient({ 
-      chain: polygon,
-      account: privateKeyToAccount(relayerPrivateKey)
-    });
-  }
-
-  /**
-   * Record USDC receipt on PolygonReceiver
-   */
-  async recordUsdcReceived(
-    strategyId: bigint,
-    user: string,
-    amount: bigint
-  ): Promise<string> {
-    return await this.walletClient.writeContract({
-      address: this.address,
-      abi: PolygonReceiver_ABI,
-      functionName: 'receiveUSDC',
-      args: [strategyId, user, amount],
-    });
-  }
-
-  /**
-   * Record Polymarket order placement
-   */
-  async recordPolymarketOrder(
-    strategyId: bigint,
-    marketId: bigint,
-    side: 'BUY' | 'SELL',
-    shares: bigint,
-    entryPrice: bigint
-  ): Promise<string> {
-    return await this.walletClient.writeContract({
-      address: this.address,
-      abi: PolygonReceiver_ABI,
-      functionName: 'recordPolymarketOrder',
-      args: [strategyId, marketId, side, shares, entryPrice],
-    });
-  }
-
-  /**
-   * Close a Polymarket position and record exit
-   */
-  async closePolymarketPosition(
-    strategyId: bigint,
-    positionIndex: number,
-    finalValue: bigint
-  ): Promise<string> {
-    return await this.walletClient.writeContract({
-      address: this.address,
-      abi: PolygonReceiver_ABI,
-      functionName: 'closePolymarketPosition',
-      args: [strategyId, positionIndex, finalValue],
-    });
-  }
-
-  /**
-   * Settle strategy after all positions closed
-   */
-  async settleStrategy(
-    strategyId: bigint,
-    totalBalance: bigint
-  ): Promise<string> {
-    return await this.walletClient.writeContract({
-      address: this.address,
-      abi: PolygonReceiver_ABI,
-      functionName: 'settleStrategy',
-      args: [strategyId, totalBalance],
-    });
-  }
-
-  /**
-   * Withdraw user's share of settled funds
-   */
-  async withdrawFunds(
-    strategyId: bigint,
-    recipient: string,
-    amount: bigint
-  ): Promise<string> {
-    return await this.walletClient.writeContract({
-      address: this.address,
-      abi: PolygonReceiver_ABI,
-      functionName: 'withdrawFunds',
-      args: [strategyId, recipient, amount],
-    });
-  }
-}
-```
-
-### 4. Setup .env Configuration
-
-**File:** `packages/bridge/.env.example`
-
-Add these variables:
-
-```env
-# Arbitrum Chain
-ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
-ARBITRUM_CHAIN_ID=42161
-
-# Polygon Chain  
-POLYGON_RPC_URL=https://polygon-rpc.com
-POLYGON_CHAIN_ID=137
-
-# Contracts
-STRATEGY_MANAGER_ADDRESS=<deploy address on Arbitrum>
-POLYGON_RECEIVER_ADDRESS=<deploy address on Polygon>
-
-# Bridge Relayer Private Key (NEVER commit this!)
-RELAYER_PRIVATE_KEY=<0x...>
-
-# Stargate Configuration
-STARGATE_ROUTER_ADDRESS=0x45A01E4e04F14f7A2a3F733DEC1ea7fF3c7dc0C  # Arbitrum
-STARGATE_USDC_POOL_ID_ARBITRUM=1
-STARGATE_USDC_POOL_ID_POLYGON=1
+# Blockchain Monitoring
+HYPERSYNC_ENDPOINT=https://arb-main.hypersync.xyz
+STRATEGY_MANAGER_ADDRESS=0x...
+ARBITRUM_RPC_URL=https://...
+POLYGON_RPC_URL=https://...
 
 # Polymarket
-POLYMARKET_API_URL=https://clob.polymarket.com
-POLYMARKET_PRIVATE_KEY=<0x...>
-
-# HyperSync
-HYPERSYNC_URL=https://arbitrum.hypersync.xyz
-
-# Logging
-LOG_LEVEL=info
+POLYMARKET_PRIVATE_KEY=0x...
+POLYMARKET_HOST=https://clob.polymarket.com
+POLYMARKET_CHAIN_ID=137
 ```
 
-### 5. Update bridge/src/config/env.ts
+### Optional Variables
+
+```bash
+# Logging
+LOG_LEVEL=info  # debug | info | warn | error
+
+# HyperSync Tuning
+HYPERSYNC_FROM_BLOCK=0
+HYPERSYNC_POLL_INTERVAL_MS=5000
+HYPERSYNC_BATCH_SIZE=500
+
+# Polymarket Advanced
+POLYMARKET_API_KEY=
+POLYMARKET_API_SECRET=
+POLYMARKET_API_PASSPHRASE=
+POLYMARKET_SIGNATURE_TYPE=1
+POLYMARKET_FUNDER_ADDRESS=0x...
+
+# Execution
+MAX_ORDER_CONCURRENCY=2
+
+# Strategy Definitions
+STRATEGY_DEFINITIONS_PATH=./strategies.json
+```
+
+## Strategy Definitions Format
+
+Create `strategies.json` with this structure:
+
+```json
+{
+  "1": {
+    "strategyId": 1,
+    "name": "Example Strategy",
+    "polymarketOrders": [
+      {
+        "marketId": "0x1234...",
+        "isYes": true,
+        "notionalBps": 5000,
+        "maxPriceBps": 7500
+      }
+    ]
+  }
+}
+```
+
+## Running the Service
+
+### Development Mode
+```bash
+pnpm dev
+```
+
+### Production Mode
+```bash
+pnpm build
+pnpm start
+```
+
+### Testing
+```bash
+# Check health
+curl http://localhost:3001/health
+
+# Get service info
+curl http://localhost:3001/
+```
+
+## Event Flow
+
+1. **Event Detection**
+   - HyperSync polls for `StrategyPurchased` events
+   - Events are decoded into typed TypeScript objects
+
+2. **Strategy Lookup**
+   - Event `strategyId` is matched against loaded strategy definitions
+   - If no strategy found, warning is logged and event is skipped
+
+3. **Order Building**
+   - Strategy orders are mapped to Polymarket intents
+   - Notional amounts are calculated based on `netAmount` and `notionalBps`
+   - Price limits are validated
+
+4. **Execution**
+   - Orders are submitted to Polymarket CLOB
+   - Retry logic handles transient failures
+   - Concurrency limits prevent API rate limiting
+
+5. **Error Handling**
+   - Errors are logged with context
+   - Event loop continues despite individual failures
+   - Service remains running for subsequent events
+
+## Graceful Shutdown
+
+The service handles signals properly:
 
 ```typescript
-const config = z.object({
-  // ... existing config ...
-  
-  // Stargate Bridge
-  stargate_router_arbitrum: z.string(),
-  stargate_usdc_pool_id_arbitrum: z.string().transform(Number),
-  stargate_usdc_pool_id_polygon: z.string().transform(Number),
+SIGTERM / SIGINT → stop worker → close server → exit(0)
+```
 
-  // Polygon
-  polygon_rpc_url: z.string().url(),
-  polygon_receiver_address: z.string(),
-  polygon_chain_id: z.string().transform(Number),
+This ensures:
+- No events are lost mid-processing
+- In-flight HTTP requests complete
+- Clean termination for orchestrators (Docker, K8s)
 
-  // Relayer
-  relayer_private_key: z.string().startsWith('0x'),
+## Extending the Service
+
+### Adding New API Endpoints
+
+Edit `src/server.ts`:
+
+```typescript
+fastify.get('/api/strategies', async (request, reply) => {
+  // Your handler logic
+  return { strategies: [...] };
 });
 ```
 
-## Testing Checklist
+### Adding New Workers
 
-- [ ] Test Stargate bridge on testnet (Arbitrum Sepolia → Polygon Mumbai)
-- [ ] Verify USDC arrives on PolygonReceiver
-- [ ] Test Polymarket order placement against bridged USDC
-- [ ] Test settlement PnL calculation
-- [ ] Test profit bridge-back from Polygon → Arbitrum
-- [ ] End-to-end flow test on testnet
-- [ ] Mainnet deployment with limited TVL
+1. Create `src/workers/your-worker.ts`
+2. Implement start/stop methods
+3. Launch from `src/index.ts`
 
-## Key Files to Update
+Example:
 
-1. ✅ **DONE**: `src/index.ts` - HyperSync monitoring (by team)
-2. ✅ **DONE**: `src/services/executor.ts` - Basic structure (by team)
-3. ⚠️ **TODO**: Add `src/services/bridge.ts` - Stargate integration
-4. ⚠️ **TODO**: Add `src/services/polygonReceiverClient.ts` - Contract interaction
-5. ⚠️ **TODO**: Update `src/config/env.ts` - New env variables
-6. ⚠️ **TODO**: Update `package.json` - Add viem, ethers if needed
+```typescript
+// In src/index.ts
+const yourWorker = new YourWorker(appConfig);
+yourWorker.start().catch(...);
 
-## References
+// In shutdown handler
+yourWorker.stop();
+```
 
-- [Stargate Finance Docs](https://stargate.finance/developers)
-- [Viem Documentation](https://viem.sh)
-- [Arbitrum RPC Endpoints](https://docs.arbitrum.io/for-devs/public-chains)
-- [Polygon RPC Endpoints](https://polygon.technology/developers)
+### Adding New Integrations
+
+1. Create client wrapper in `src/clients/` or `src/[integration-name]/`
+2. Add configuration to `src/config/env.ts`
+3. Wire up in `src/services/executor.ts`
+
+## Current Limitations
+
+- **No persistence**: Events are processed in-memory only
+- **No status reporting**: Failed executions aren't reported on-chain
+- **Polymarket only**: Hedge execution (GMX, Hyperliquid) not yet implemented
+- **No bridging**: LayerZero/Stargate integration pending
+- **Basic retry logic**: Could be enhanced with exponential backoff, dead-letter queues
+
+## Future Enhancements
+
+- [ ] Add `/api/status` endpoint showing worker health and metrics
+- [ ] Implement event/order persistence (PostgreSQL or Redis)
+- [ ] Add webhook support for external event sources
+- [ ] Implement bridging via LayerZero/Stargate
+- [ ] Add GMX and Hyperliquid hedge execution
+- [ ] Settlement computation and on-chain reporting
+- [ ] Prometheus metrics export
+- [ ] Structured alerting (PagerDuty, Slack)
+- [ ] Admin API for strategy management
+- [ ] Rate limiting and authentication
+
+## Troubleshooting
+
+### Worker Not Starting
+- Check `HYPERSYNC_ENDPOINT` is reachable
+- Verify `STRATEGY_MANAGER_ADDRESS` is correct
+- Ensure RPC URLs are valid
+
+### Orders Not Executing
+- Verify `POLYMARKET_PRIVATE_KEY` has funds
+- Check Polymarket API connectivity
+- Review `strategies.json` format and market IDs
+- Look for error logs with context
+
+### API Server Issues
+- Ensure `PORT` is not in use
+- Check firewall rules if accessing remotely
+- Verify `HOST` binding (0.0.0.0 vs 127.0.0.1)
 
 ## Support
 
-- StrategyManager ABI: `packages/hardhat/deployments/arbitrum/StrategyManager.json`
-- PolygonReceiver ABI: `packages/hardhat/deployments/polygon/PolygonReceiver.json`
-- HedgeExecutor ABI: `packages/hardhat/deployments/arbitrum/HedgeExecutor.json`
+For questions or issues:
+1. Check logs with `LOG_LEVEL=debug`
+2. Review this guide and README
+3. Examine source code comments
+4. Open an issue in the repository
