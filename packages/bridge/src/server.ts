@@ -2,10 +2,12 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { createLogger } from './utils/logger.js';
 import { EventMonitorWorker } from './workers/event-monitor.js';
+import { PositionCloser } from './services/position-closer.js';
+import { AppConfig } from './config/env.js';
 
 const log = createLogger('api-server');
 
-export async function createServer(eventMonitor?: EventMonitorWorker) {
+export async function createServer(eventMonitor?: EventMonitorWorker, appConfig?: AppConfig) {
     const fastify = Fastify({
         logger: false, // We're using our custom logger
         disableRequestLogging: true,
@@ -35,6 +37,7 @@ export async function createServer(eventMonitor?: EventMonitorWorker) {
                 health: '/health',
                 monitorStatus: '/api/monitor/status',
                 monitorStats: '/api/monitor/stats',
+                closePosition: 'POST /api/strategies/:id/close',
             },
         };
     });
@@ -67,15 +70,67 @@ export async function createServer(eventMonitor?: EventMonitorWorker) {
         };
     });
 
+    // Close position endpoint
+    fastify.post<{
+        Params: { id: string };
+        Body: { reason?: string };
+    }>('/api/strategies/:id/close', async (request, reply) => {
+        if (!appConfig) {
+            return reply.code(503).send({
+                error: 'Service not initialized',
+            });
+        }
+
+        const strategyId = BigInt(request.params.id);
+        const { reason } = request.body || {};
+
+        try {
+            log.info('Received close position request', {
+                strategyId: strategyId.toString(),
+                reason,
+            });
+
+            const closer = new PositionCloser(appConfig);
+            const result = await closer.closePosition({
+                strategyId,
+                reason,
+            });
+
+            return {
+                success: true,
+                strategyId: result.strategyId.toString(),
+                totalPayout: result.totalPayout.toString(),
+                payoutPerUSDC: result.payoutPerUSDC.toString(),
+                transactionHash: result.transactionHash,
+                positions: result.polymarketPositions.map(p => ({
+                    tokenId: p.tokenId,
+                    side: p.side,
+                    size: p.size,
+                })),
+            };
+        } catch (error) {
+            log.error('Failed to close position', {
+                error: (error as Error).message,
+                strategyId: strategyId.toString(),
+            });
+
+            return reply.code(500).send({
+                error: 'Failed to close position',
+                message: (error as Error).message,
+            });
+        }
+    });
+
     return fastify;
 }
 
 export async function startServer(
     port: number = 3001,
     host: string = '0.0.0.0',
-    eventMonitor?: EventMonitorWorker
+    eventMonitor?: EventMonitorWorker,
+    appConfig?: AppConfig
 ) {
-    const server = await createServer(eventMonitor);
+    const server = await createServer(eventMonitor, appConfig);
 
     try {
         await server.listen({ port, host });

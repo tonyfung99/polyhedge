@@ -43,4 +43,23 @@ export interface PolymarketExecutionResult {
     orderId?: string;
 }
 
+export interface ClosePositionRequest {
+    strategyId: bigint;
+    reason?: string;
+}
+
+export interface PolymarketPosition {
+    tokenId: string;
+    size: number; // Amount of tokens held
+    side: 'YES' | 'NO';
+}
+
+export interface SettlementResult {
+    strategyId: bigint;
+    totalPayout: bigint;
+    payoutPerUSDC: bigint;
+    polymarketPositions: PolymarketPosition[];
+    transactionHash?: string;
+}
+
 

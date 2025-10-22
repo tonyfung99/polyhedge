@@ -2,7 +2,7 @@
 import { ClobClient, OrderType, Side } from '@polymarket/clob-client';
 import { Wallet, JsonRpcProvider } from 'ethers';
 import { AppConfig } from '../config/env.js';
-import { PolymarketOrderIntent } from '../types.js';
+import { PolymarketOrderIntent, PolymarketPosition } from '../types.js';
 import { createLogger } from '../utils/logger.js';
 import { createLimiter, retry } from '../utils/promise.js';
 
@@ -53,6 +53,61 @@ export class PolymarketClient {
                         OrderType.FOK,
                         true,
                     );
+                },
+                3,
+                1_000,
+            ),
+        );
+    }
+
+    async closePosition(params: { tokenId: string; side: 'YES' | 'NO' }): Promise<PolymarketPosition> {
+        const { tokenId, side } = params;
+
+        return await this.runWithLimit(() =>
+            retry(
+                async () => {
+                    log.info('Closing Polymarket position', {
+                        tokenId,
+                        side,
+                    });
+
+                    // Get current position
+                    // Note: CLOB client doesn't expose position queries directly
+                    // In production, you'd query the CLOB API or track positions
+                    // For now, we'll sell at market price
+
+                    // Sell the position (opposite side)
+                    const sellSide = side === 'YES' ? Side.SELL : Side.BUY;
+
+                    // For MVP, assume fixed position size
+                    // In production, query actual position size
+                    const positionSize = 100; // Placeholder
+
+                    await this.client.createAndPostMarketOrder(
+                        {
+                            tokenID: tokenId,
+                            amount: positionSize,
+                            side: sellSide,
+                        },
+                        {
+                            negRisk: false,
+                            tickSize: '0.001',
+                        },
+                        OrderType.FOK,
+                        true,
+                    );
+
+                    log.info('Position closed successfully', {
+                        tokenId,
+                        side,
+                        size: positionSize,
+                    });
+
+                    return {
+                        tokenId,
+                        size: positionSize,
+                        side,
+                    };
                 },
                 3,
                 1_000,

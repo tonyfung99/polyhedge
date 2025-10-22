@@ -22,10 +22,10 @@ async function bootstrap() {
       log.info('🧪 TEST MODE ENABLED');
     }
 
-    // Start API server with monitor reference
+    // Start API server with monitor reference and config
     const port = Number(process.env.PORT) || 3001;
     const host = process.env.HOST || '0.0.0.0';
-    const server = await startServer(port, host, eventMonitor);
+    const server = await startServer(port, host, eventMonitor, appConfig);
 
     // Start event monitor worker
     if (testMode) {
