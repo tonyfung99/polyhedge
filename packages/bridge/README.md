@@ -44,9 +44,12 @@ packages/bridge/
 
 ## Setup
 
-1. **Install dependencies**:
+> **Note**: This package is part of a Yarn workspace. Always install dependencies from the project root.
+
+1. **Install dependencies** (from project root):
    ```bash
-   pnpm install
+   cd /path/to/polyhedge
+   yarn install
    ```
 
 2. **Configure environment**:
@@ -69,13 +72,13 @@ packages/bridge/
 
 ### Development
 ```bash
-pnpm dev
+yarn dev
 ```
 
 ### Production
 ```bash
-pnpm build
-pnpm start
+yarn build
+yarn start
 ```
 
 The service will:

@@ -1,0 +1,64 @@
+{
+    "strategies": [
+        {
+            "id": 1,
+            "name": "Example Strategy - Split Allocation",
+            "polymarketOrders": [
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_1",
+                    "outcome": "YES",
+                    "priority": 1,
+                    "notionalBps": 5000,
+                    "maxPriceBps": 7500
+                },
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_2",
+                    "outcome": "NO",
+                    "priority": 2,
+                    "notionalBps": 5000,
+                    "maxPriceBps": 6000
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Example Strategy - Single Market Full Allocation",
+            "polymarketOrders": [
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_3",
+                    "outcome": "YES",
+                    "priority": 1,
+                    "notionalBps": 10000,
+                    "maxPriceBps": 8000
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Example Strategy - Three-Way Split",
+            "polymarketOrders": [
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_4",
+                    "outcome": "YES",
+                    "priority": 1,
+                    "notionalBps": 3333,
+                    "maxPriceBps": 7000
+                },
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_5",
+                    "outcome": "YES",
+                    "priority": 2,
+                    "notionalBps": 3333,
+                    "maxPriceBps": 6500
+                },
+                {
+                    "marketId": "YOUR_POLYMARKET_TOKEN_ID_6",
+                    "outcome": "NO",
+                    "priority": 3,
+                    "notionalBps": 3334,
+                    "maxPriceBps": 5500
+                }
+            ]
+        }
+    ]
+}

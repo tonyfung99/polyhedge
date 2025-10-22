@@ -1,0 +1,22 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies (managed by Yarn workspaces at root)
+node_modules/
+
+# Optional: Strategy configurations (uncomment if you want to ignore)
+# strategies.json
+

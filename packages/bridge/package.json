@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "pnpm ts-node-esm src/index.ts",
+    "dev": "yarn tsx src/index.ts",
     "start": "node dist/index.js",
     "lint": "tsc --noEmit"
   },
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.4.5"
   }
 }
