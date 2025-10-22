@@ -7,8 +7,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "yarn tsx src/index.ts",
+    "dev:test": "TEST_MODE=true yarn tsx src/index.ts",
     "start": "node dist/index.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "^0.6.6",
@@ -20,8 +24,11 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^2.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
   }
 }

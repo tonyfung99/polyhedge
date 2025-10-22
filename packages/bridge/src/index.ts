@@ -12,19 +12,33 @@ async function bootstrap() {
     const appConfig = loadAppConfig();
     log.info('Configuration loaded successfully');
 
-    // Start API server
-    const port = Number(process.env.PORT) || 3001;
-    const host = process.env.HOST || '0.0.0.0';
-    const server = await startServer(port, host);
-
-    // Start event monitor worker
+    // Create event monitor worker
     const eventMonitor = new EventMonitorWorker(appConfig);
 
-    // Run event monitor in the background
-    eventMonitor.start().catch((error) => {
-      log.error('Event monitor crashed', error);
-      process.exit(1);
-    });
+    // Check if test mode is enabled
+    const testMode = process.env.TEST_MODE === 'true';
+    if (testMode) {
+      eventMonitor.enableTestMode();
+      log.info('🧪 TEST MODE ENABLED');
+    }
+
+    // Start API server with monitor reference
+    const port = Number(process.env.PORT) || 3001;
+    const host = process.env.HOST || '0.0.0.0';
+    const server = await startServer(port, host, eventMonitor);
+
+    // Start event monitor worker
+    if (testMode) {
+      eventMonitor.startTestMode().catch((error) => {
+        log.error('Event monitor crashed', error);
+        process.exit(1);
+      });
+    } else {
+      eventMonitor.start().catch((error) => {
+        log.error('Event monitor crashed', error);
+        process.exit(1);
+      });
+    }
 
     // Graceful shutdown handling
     const shutdown = async () => {
@@ -46,6 +60,7 @@ async function bootstrap() {
     log.info('Bridge service started successfully', {
       apiPort: port,
       monitoringEnabled: true,
+      testMode,
     });
   } catch (error) {
     log.error('Failed to start bridge service', error);

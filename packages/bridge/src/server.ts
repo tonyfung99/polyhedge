@@ -1,10 +1,11 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { createLogger } from './utils/logger.js';
+import { EventMonitorWorker } from './workers/event-monitor.js';
 
 const log = createLogger('api-server');
 
-export async function createServer() {
+export async function createServer(eventMonitor?: EventMonitorWorker) {
     const fastify = Fastify({
         logger: false, // We're using our custom logger
         disableRequestLogging: true,
@@ -32,15 +33,49 @@ export async function createServer() {
             version: '0.1.0',
             endpoints: {
                 health: '/health',
+                monitorStatus: '/api/monitor/status',
+                monitorStats: '/api/monitor/stats',
             },
+        };
+    });
+
+    // Monitor status endpoint
+    fastify.get('/api/monitor/status', async (request, reply) => {
+        if (!eventMonitor) {
+            return reply.code(503).send({
+                error: 'Event monitor not initialized',
+            });
+        }
+
+        return eventMonitor.getStatus();
+    });
+
+    // Monitor stats only (lightweight)
+    fastify.get('/api/monitor/stats', async (request, reply) => {
+        if (!eventMonitor) {
+            return reply.code(503).send({
+                error: 'Event monitor not initialized',
+            });
+        }
+
+        const status = eventMonitor.getStatus();
+        return {
+            isRunning: status.isRunning,
+            testMode: status.testMode,
+            stats: status.stats,
+            timestamp: new Date().toISOString(),
         };
     });
 
     return fastify;
 }
 
-export async function startServer(port: number = 3001, host: string = '0.0.0.0') {
-    const server = await createServer();
+export async function startServer(
+    port: number = 3001,
+    host: string = '0.0.0.0',
+    eventMonitor?: EventMonitorWorker
+) {
+    const server = await createServer(eventMonitor);
 
     try {
         await server.listen({ port, host });
@@ -51,4 +86,3 @@ export async function startServer(port: number = 3001, host: string = '0.0.0.0')
         throw err;
     }
 }
-
