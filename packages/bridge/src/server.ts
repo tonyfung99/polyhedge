@@ -2,12 +2,14 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { createLogger } from './utils/logger.js';
 import { EventMonitorWorker } from './workers/event-monitor.js';
-import { PositionCloser } from './services/position-closer.js';
-import { AppConfig } from './config/env.js';
+import { MarketMaturityMonitor } from './workers/market-maturity-monitor.js';
 
 const log = createLogger('api-server');
 
-export async function createServer(eventMonitor?: EventMonitorWorker, appConfig?: AppConfig) {
+export async function createServer(
+    eventMonitor?: EventMonitorWorker,
+    maturityMonitor?: MarketMaturityMonitor
+) {
     const fastify = Fastify({
         logger: false, // We're using our custom logger
         disableRequestLogging: true,
@@ -35,15 +37,15 @@ export async function createServer(eventMonitor?: EventMonitorWorker, appConfig?
             version: '0.1.0',
             endpoints: {
                 health: '/health',
-                monitorStatus: '/api/monitor/status',
-                monitorStats: '/api/monitor/stats',
-                closePosition: 'POST /api/strategies/:id/close',
+                eventMonitorStatus: '/api/monitor/event-status',
+                eventMonitorStats: '/api/monitor/event-stats',
+                maturityMonitorStatus: '/api/monitor/maturity-status',
             },
         };
     });
 
-    // Monitor status endpoint
-    fastify.get('/api/monitor/status', async (request, reply) => {
+    // Event monitor status endpoint
+    fastify.get('/api/monitor/event-status', async (request, reply) => {
         if (!eventMonitor) {
             return reply.code(503).send({
                 error: 'Event monitor not initialized',
@@ -53,8 +55,8 @@ export async function createServer(eventMonitor?: EventMonitorWorker, appConfig?
         return eventMonitor.getStatus();
     });
 
-    // Monitor stats only (lightweight)
-    fastify.get('/api/monitor/stats', async (request, reply) => {
+    // Event monitor stats only (lightweight)
+    fastify.get('/api/monitor/event-stats', async (request, reply) => {
         if (!eventMonitor) {
             return reply.code(503).send({
                 error: 'Event monitor not initialized',
@@ -70,55 +72,15 @@ export async function createServer(eventMonitor?: EventMonitorWorker, appConfig?
         };
     });
 
-    // Close position endpoint
-    fastify.post<{
-        Params: { id: string };
-        Body: { reason?: string };
-    }>('/api/strategies/:id/close', async (request, reply) => {
-        if (!appConfig) {
+    // Market maturity monitor status endpoint
+    fastify.get('/api/monitor/maturity-status', async (request, reply) => {
+        if (!maturityMonitor) {
             return reply.code(503).send({
-                error: 'Service not initialized',
+                error: 'Market maturity monitor not initialized',
             });
         }
 
-        const strategyId = BigInt(request.params.id);
-        const { reason } = request.body || {};
-
-        try {
-            log.info('Received close position request', {
-                strategyId: strategyId.toString(),
-                reason,
-            });
-
-            const closer = new PositionCloser(appConfig);
-            const result = await closer.closePosition({
-                strategyId,
-                reason,
-            });
-
-            return {
-                success: true,
-                strategyId: result.strategyId.toString(),
-                totalPayout: result.totalPayout.toString(),
-                payoutPerUSDC: result.payoutPerUSDC.toString(),
-                transactionHash: result.transactionHash,
-                positions: result.polymarketPositions.map(p => ({
-                    tokenId: p.tokenId,
-                    side: p.side,
-                    size: p.size,
-                })),
-            };
-        } catch (error) {
-            log.error('Failed to close position', {
-                error: (error as Error).message,
-                strategyId: strategyId.toString(),
-            });
-
-            return reply.code(500).send({
-                error: 'Failed to close position',
-                message: (error as Error).message,
-            });
-        }
+        return maturityMonitor.getStatus();
     });
 
     return fastify;
@@ -128,9 +90,9 @@ export async function startServer(
     port: number = 3001,
     host: string = '0.0.0.0',
     eventMonitor?: EventMonitorWorker,
-    appConfig?: AppConfig
+    maturityMonitor?: MarketMaturityMonitor
 ) {
-    const server = await createServer(eventMonitor, appConfig);
+    const server = await createServer(eventMonitor, maturityMonitor);
 
     try {
         await server.listen({ port, host });
