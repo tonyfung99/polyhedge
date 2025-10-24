@@ -72,7 +72,7 @@ describe('Integration Tests', () => {
     it('should show worker status', async () => {
         const response = await server.inject({
             method: 'GET',
-            url: '/api/monitor/status',
+            url: '/api/monitor/event-status',
         });
 
         expect(response.statusCode).toBe(200);
@@ -86,7 +86,7 @@ describe('Integration Tests', () => {
     it('should track event statistics', async () => {
         const response = await server.inject({
             method: 'GET',
-            url: '/api/monitor/stats',
+            url: '/api/monitor/event-stats',
         });
 
         expect(response.statusCode).toBe(200);

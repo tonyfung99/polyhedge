@@ -40,10 +40,10 @@ describe('API Server', () => {
             expect(body.endpoints).toBeDefined();
         });
 
-        it('should return 503 for monitor status without worker', async () => {
+        it('should return 503 for event monitor status without worker', async () => {
             const response = await server.inject({
                 method: 'GET',
-                url: '/api/monitor/status',
+                url: '/api/monitor/event-status',
             });
 
             expect(response.statusCode).toBe(503);

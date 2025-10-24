@@ -40,11 +40,13 @@ yarn dev:test
 ## 📊 Monitoring Endpoints
 
 ### 1. Health Check
+
 ```bash
 curl http://localhost:3001/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -55,11 +57,13 @@ Response:
 ```
 
 ### 2. Monitor Status (Full Details)
+
 ```bash
 curl http://localhost:3001/api/monitor/status
 ```
 
 Response:
+
 ```json
 {
   "isRunning": true,
@@ -85,11 +89,13 @@ Response:
 ```
 
 ### 3. Stats Only (Lightweight)
+
 ```bash
 curl http://localhost:3001/api/monitor/stats
 ```
 
 Response:
+
 ```json
 {
   "isRunning": true,
@@ -219,6 +225,7 @@ PORT=3002 yarn dev
 #### ❌ Events Not Detected
 
 Check:
+
 1. Is `TEST_MODE=true` for testing?
 2. Is `STRATEGY_MANAGER_ADDRESS` correct?
 3. Is HyperSync endpoint reachable?
@@ -236,12 +243,14 @@ curl -X POST $HYPERSYNC_ENDPOINT -H "Content-Type: application/json" -d '{
 #### ❌ High Error Count
 
 Check logs for specific errors:
+
 ```bash
 # Filter for errors
 yarn dev 2>&1 | grep ERROR
 ```
 
 Common causes:
+
 - Invalid Polymarket credentials
 - Network connectivity issues
 - Strategy not found in config
@@ -284,11 +293,11 @@ node --expose-gc --max-old-space-size=512 dist/index.js
     cd packages/bridge
     TEST_MODE=true yarn dev &
     sleep 5
-    
+
 - name: Health check
   run: |
     curl -f http://localhost:3001/health
-    
+
 - name: Check monitoring
   run: |
     curl -s http://localhost:3001/api/monitor/status | jq -e '.isRunning == true'
@@ -312,14 +321,14 @@ node --expose-gc --max-old-space-size=512 dist/index.js
 
 while true; do
   STATS=$(curl -s http://localhost:3001/api/monitor/stats)
-  
+
   DETECTED=$(echo $STATS | jq '.stats.eventsDetected')
   PROCESSED=$(echo $STATS | jq '.stats.eventsProcessed')
   ERRORS=$(echo $STATS | jq '.stats.errorCount')
   UPTIME=$(echo $STATS | jq '.stats.uptime')
-  
+
   echo "$(date) | Detected: $DETECTED | Processed: $PROCESSED | Errors: $ERRORS | Uptime: ${UPTIME}s"
-  
+
   sleep 60
 done
 ```
@@ -372,4 +381,3 @@ Ctrl+C
 - **Test Examples**: See `src/__tests__/` directory
 
 Happy Testing! 🎉
-
