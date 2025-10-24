@@ -3,14 +3,9 @@ import { ethers } from "hardhat";
 
 describe("StrategyManager", function () {
   async function deployFixture() {
-    const [, alice] = await ethers.getSigners();
+    const [owner, alice] = await ethers.getSigners();
 
-    // Deploy HedgeExecutor first
-    const HedgeExecutor = await ethers.getContractFactory("HedgeExecutor");
-    const hedgeExecutor = await HedgeExecutor.deploy();
-    await hedgeExecutor.waitForDeployment();
-
-    // Deploy a mock USDC (minimal ERC20) for testing using a built-in Mock if available
+    // Deploy a mock USDC first
     const ERC20Mock = await ethers.getContractFactory("contracts/test/MockERC20.sol:MockERC20");
     const usdcDeployment = await ERC20Mock.deploy("USD Coin", "USDC", 6);
     await usdcDeployment.waitForDeployment();
@@ -18,23 +13,39 @@ describe("StrategyManager", function () {
     const usdcMock = await ethers.getContractAt("contracts/test/MockERC20.sol:MockERC20", usdcAddr);
     const usdc = await ethers.getContractAt("IERC20", usdcAddr);
 
+    // Deploy mock GMX contracts for testing
+    // In real deployment, these would be actual GMX addresses on Arbitrum
+    const gmxExchangeRouter = owner.address; // Placeholder
+    const gmxRouter = owner.address; // Placeholder
+
+    // Deploy HedgeExecutor with GMX addresses and USDC
+    const HedgeExecutor = await ethers.getContractFactory("HedgeExecutor");
+    const hedgeExecutor = await HedgeExecutor.deploy(gmxExchangeRouter, gmxRouter, usdcAddr);
+    await hedgeExecutor.waitForDeployment();
+
     // Deploy StrategyManager with HedgeExecutor address
     const StrategyManager = await ethers.getContractFactory("StrategyManager");
-    const manager = await StrategyManager.deploy(await usdc.getAddress(), await hedgeExecutor.getAddress());
+    const manager = await StrategyManager.deploy(usdcAddr, await hedgeExecutor.getAddress());
     await manager.waitForDeployment();
 
     // Tell HedgeExecutor about StrategyManager
     await hedgeExecutor.setStrategyManager(await manager.getAddress());
 
+    // Set up asset markets for testing (BTC market)
+    await hedgeExecutor.setAssetMarket("BTC", owner.address); // Use owner address as test market
+
     // Mint USDC to Alice and approve
     await usdcMock.mint(alice.address, 1_000_000_000); // 1,000 USDC with 6 decimals
     await usdc.connect(alice).approve(await manager.getAddress(), 1_000_000_000);
 
-    return { alice, usdc, manager };
+    // Fund HedgeExecutor with USDC for hedge execution
+    await usdcMock.mint(await hedgeExecutor.getAddress(), 1_000_000_000);
+
+    return { owner, alice, usdc, manager, hedgeExecutor };
   }
 
   it("creates, buys, settles, and claims", async function () {
-    const { alice, usdc, manager } = await deployFixture();
+    const { alice, usdc, manager, hedgeExecutor } = await deployFixture();
 
     // Create a simple strategy
     const now = (await ethers.provider.getBlock("latest"))!.timestamp;
@@ -50,9 +61,24 @@ describe("StrategyManager", function () {
     // Alice buys 200 USDC gross
     await manager.connect(alice).buyStrategy(1, 200_000_000);
 
+    // Verify hedge order was created
+    const hedgeOrder = await hedgeExecutor.getHedgeOrder(1);
+    expect(hedgeOrder.strategyId).to.equal(1);
+    expect(hedgeOrder.user).to.equal(alice.address);
+    expect(hedgeOrder.asset).to.equal("BTC");
+    expect(hedgeOrder.isLong).to.equal(false);
+    expect(hedgeOrder.amount).to.equal(100_000_000);
+    expect(hedgeOrder.executed).to.equal(true);
+
+    // Verify order is marked as executed
+    expect(await hedgeExecutor.isOrderExecuted(1)).to.equal(true);
+
     // Fast-forward to after maturity
     await ethers.provider.send("evm_increaseTime", [70]);
     await ethers.provider.send("evm_mine", []);
+
+    // Close hedge order
+    await hedgeExecutor.closeHedgeOrder(1, 5_000_000); // 5 USDC profit
 
     // Settle with payoutPerUSDC = 1.05 (1,050,000)
     await manager.settleStrategy(1, 1_050_000);
