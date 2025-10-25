@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { startServer } from './server.js';
 import { EventMonitorWorker } from './workers/event-monitor.js';
 import { MarketMaturityMonitor } from './workers/market-maturity-monitor.js';
+import { PolymarketClient } from './polymarket/client.js';
 import { loadAppConfig } from './config/env.js';
 import { createLogger } from './utils/logger.js';
 
@@ -12,6 +13,10 @@ async function bootstrap() {
     // Load configuration
     const appConfig = loadAppConfig();
     log.info('Configuration loaded successfully');
+
+    // Initialize Polymarket client
+    const polymarketClient = new PolymarketClient(appConfig);
+    log.info('Polymarket client initialized');
 
     // Create event monitor worker (for detecting StrategyPurchased events)
     const eventMonitor = new EventMonitorWorker(appConfig);
@@ -27,10 +32,10 @@ async function bootstrap() {
       log.info('🧪 TEST MODE ENABLED');
     }
 
-    // Start API server with monitor references
+    // Start API server with monitor references and Polymarket client
     const port = Number(process.env.PORT) || 3001;
     const host = process.env.HOST || '0.0.0.0';
-    const server = await startServer(port, host, eventMonitor, maturityMonitor);
+    const server = await startServer(port, host, eventMonitor, maturityMonitor, polymarketClient);
 
     // Start event monitor worker (for strategy purchases)
     if (testMode) {
