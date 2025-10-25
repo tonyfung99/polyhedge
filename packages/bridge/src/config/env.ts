@@ -35,9 +35,6 @@ const appConfigSchema = z.object({
     polymarketHost: z.string().url().default('https://clob.polymarket.com'),
     polymarketChainId: z.coerce.number().int().default(137),
     polymarketPrivateKey: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
-    polymarketApiKey: z.string().optional(),
-    polymarketApiSecret: z.string().optional(),
-    polymarketApiPassphrase: z.string().optional(),
     polymarketSignatureType: z.coerce.number().int().nonnegative().optional(),
     polymarketFunderAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 });
@@ -61,9 +58,6 @@ export function loadAppConfig(): AppConfig {
         polymarketHost: process.env.POLYMARKET_HOST,
         polymarketChainId: process.env.POLYMARKET_CHAIN_ID,
         polymarketPrivateKey: requireEnv('POLYMARKET_PRIVATE_KEY'),
-        polymarketApiKey: process.env.POLYMARKET_API_KEY,
-        polymarketApiSecret: process.env.POLYMARKET_API_SECRET,
-        polymarketApiPassphrase: process.env.POLYMARKET_API_PASSPHRASE,
         polymarketSignatureType: process.env.POLYMARKET_SIGNATURE_TYPE,
         polymarketFunderAddress: process.env.POLYMARKET_FUNDER_ADDRESS,
     });

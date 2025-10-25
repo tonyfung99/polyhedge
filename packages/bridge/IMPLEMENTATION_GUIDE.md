@@ -36,12 +36,14 @@ The bridge service has been refactored into a Fastify-based API with background 
 ### Core Files
 
 - **`src/index.ts`** - Main entry point
+
   - Loads configuration
   - Starts Fastify server
   - Launches event monitor worker
   - Handles graceful shutdown
 
 - **`src/server.ts`** - Fastify server setup
+
   - Configures CORS
   - Defines API routes
   - Health check endpoint
@@ -55,20 +57,24 @@ The bridge service has been refactored into a Fastify-based API with background 
 ### Services & Utilities
 
 - **`src/services/executor.ts`** - Strategy execution logic
+
   - Maps events to strategy definitions
   - Builds Polymarket order intents
   - Coordinates order submission
 
 - **`src/monitoring/`** - Event monitoring utilities
+
   - `config.ts` - HyperSync query configuration
   - `decoder.ts` - Event log decoding
 
 - **`src/polymarket/client.ts`** - Polymarket integration
+
   - CLOB client wrapper
   - Order submission with retry logic
   - Rate limiting
 
 - **`src/config/env.ts`** - Configuration management
+
   - Environment variable validation (zod)
   - Strategy definitions loading
   - RPC and API endpoint setup
@@ -110,9 +116,6 @@ HYPERSYNC_POLL_INTERVAL_MS=5000
 HYPERSYNC_BATCH_SIZE=500
 
 # Polymarket Advanced
-POLYMARKET_API_KEY=
-POLYMARKET_API_SECRET=
-POLYMARKET_API_PASSPHRASE=
 POLYMARKET_SIGNATURE_TYPE=1
 POLYMARKET_FUNDER_ADDRESS=0x...
 
@@ -147,17 +150,20 @@ Create `strategies.json` with this structure:
 ## Running the Service
 
 ### Development Mode
+
 ```bash
 pnpm dev
 ```
 
 ### Production Mode
+
 ```bash
 pnpm build
 pnpm start
 ```
 
 ### Testing
+
 ```bash
 # Check health
 curl http://localhost:3001/health
@@ -169,19 +175,23 @@ curl http://localhost:3001/
 ## Event Flow
 
 1. **Event Detection**
+
    - HyperSync polls for `StrategyPurchased` events
    - Events are decoded into typed TypeScript objects
 
 2. **Strategy Lookup**
+
    - Event `strategyId` is matched against loaded strategy definitions
    - If no strategy found, warning is logged and event is skipped
 
 3. **Order Building**
+
    - Strategy orders are mapped to Polymarket intents
    - Notional amounts are calculated based on `netAmount` and `notionalBps`
    - Price limits are validated
 
 4. **Execution**
+
    - Orders are submitted to Polymarket CLOB
    - Retry logic handles transient failures
    - Concurrency limits prevent API rate limiting
@@ -200,6 +210,7 @@ SIGTERM / SIGINT → stop worker → close server → exit(0)
 ```
 
 This ensures:
+
 - No events are lost mid-processing
 - In-flight HTTP requests complete
 - Clean termination for orchestrators (Docker, K8s)
@@ -264,17 +275,20 @@ yourWorker.stop();
 ## Troubleshooting
 
 ### Worker Not Starting
+
 - Check `HYPERSYNC_ENDPOINT` is reachable
 - Verify `STRATEGY_MANAGER_ADDRESS` is correct
 - Ensure RPC URLs are valid
 
 ### Orders Not Executing
+
 - Verify `POLYMARKET_PRIVATE_KEY` has funds
 - Check Polymarket API connectivity
 - Review `strategies.json` format and market IDs
 - Look for error logs with context
 
 ### API Server Issues
+
 - Ensure `PORT` is not in use
 - Check firewall rules if accessing remotely
 - Verify `HOST` binding (0.0.0.0 vs 127.0.0.1)
@@ -282,6 +296,7 @@ yourWorker.stop();
 ## Support
 
 For questions or issues:
+
 1. Check logs with `LOG_LEVEL=debug`
 2. Review this guide and README
 3. Examine source code comments
