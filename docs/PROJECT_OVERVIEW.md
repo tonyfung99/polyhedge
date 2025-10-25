@@ -2,21 +2,22 @@
 
 ## 🎯 Mission Statement
 
-PolyHedge is an automated arbitrage platform that exploits pricing inefficiencies in Polymarket prediction markets while hedging directional risk through DEX perpetuals. Our mission is to democratize sophisticated trading strategies that were previously only available to institutional traders.
+PolyHedge is an automated arbitrage platform that exploits pricing inefficiencies in Polymarket crypto price prediction markets while hedging directional risk through DEX perpetuals. Our mission is to democratize sophisticated trading strategies that were previously only available to institutional traders.
 
 ## 🚀 Core Value Proposition
 
 ### The Problem We Solve
 
-**Polymarket Inefficiencies**: Despite $2B+ daily volume, Polymarket exhibits significant pricing inefficiencies:
+**Polymarket Crypto Price Inefficiencies**: Despite $2B+ daily volume, Polymarket exhibits significant pricing inefficiencies in crypto price prediction markets:
 
-- **Tail strikes** (extreme prices like BTC >$200k) are massively overvalued due to hype
-- **Mid strikes** (realistic prices like BTC >$110k) are undervalued due to fear
+- **Extreme price targets** (BTC >$200k) are massively overvalued due to hype
+- **Mid-range targets** (BTC >$110k) are undervalued due to fear
 - **Manual arbitrage** is complex, risky, and time-consuming
+- **Cross-chain execution** is manual and error-prone
 
 **Current Solutions Are Inadequate**:
 
-- No automated tools for detecting inefficiencies
+- No automated tools for detecting crypto price inefficiencies
 - Cross-chain execution is manual and error-prone
 - Risk management requires sophisticated knowledge
 - No integrated hedging solutions
@@ -25,28 +26,28 @@ PolyHedge is an automated arbitrage platform that exploits pricing inefficiencie
 
 **Automated Arbitrage + Hedging Platform**:
 
-1. **Real-time scanner** identifies mispriced markets using Black-Scholes theory
+1. **Real-time scanner** identifies mispriced crypto markets using Black-Scholes theory
 2. **One-click execution** creates arbitrage positions across chains
-3. **Automated hedging** neutralizes directional risk via DEX perpetuals
+3. **Automated hedging** neutralizes directional risk via DEX perpetuals (GMX)
 4. **Smart risk management** with Kelly Criterion position sizing
 
 ## 📊 Market Opportunity
 
-### Current Inefficiencies (Real Data)
+### Current Inefficiencies (BTC Price Predictions)
 
-| Market         | Market Price | Theoretical | Edge       | Opportunity                |
-| -------------- | ------------ | ----------- | ---------- | -------------------------- |
-| BTC >$200k Oct | 0.7%         | 0.0001%     | **-99.9%** | Massive overvaluation      |
-| BTC >$150k Oct | 2.5%         | 0.22%       | **-91.1%** | High overvaluation         |
-| BTC >$110k Oct | 18.0%        | 82.4%       | **+358%**  | Extreme undervaluation     |
-| BTC >$120k Oct | 12.0%        | 31.9%       | **+166%**  | Significant undervaluation |
+| Market     | Market Price | Theoretical | Edge       | Opportunity                |
+| ---------- | ------------ | ----------- | ---------- | -------------------------- |
+| BTC >$200k | 0.7%         | 0.0001%     | **-99.9%** | Massive overvaluation      |
+| BTC >$150k | 2.5%         | 0.22%       | **-91.1%** | High overvaluation         |
+| BTC >$110k | 18.0%        | 82.4%       | **+358%**  | Extreme undervaluation     |
+| BTC >$120k | 12.0%        | 31.9%       | **+166%**  | Significant undervaluation |
 
 ### Expected Returns
 
 - **Target**: 15-25% per epoch (1-4 weeks)
-- **Annualized**: 200-300% APY (with volatility)
-- **Win Rate**: 70%+ of scenarios
-- **Risk**: Hedge-protected but not risk-free
+- **Mechanism**: Exploit crypto price prediction mispricings
+- **Hedging**: Use GMX perpetuals to neutralize directional moves
+- **Risk**: Managed through automated position sizing and liquidation protection
 
 ## 🏗️ Technical Architecture
 
