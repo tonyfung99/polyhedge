@@ -4,6 +4,7 @@ import { createLogger } from './utils/logger.js';
 import { EventMonitorWorker } from './workers/event-monitor.js';
 import { MarketMaturityMonitor } from './workers/market-maturity-monitor.js';
 import { PolymarketClient } from './polymarket/client.js';
+import { VincentService } from './services/vincent-service.js';
 import { z } from 'zod';
 
 const log = createLogger('api-server');
@@ -22,10 +23,18 @@ const closeBetSchema = z.object({
     side: z.enum(['YES', 'NO'], { required_error: 'Side must be YES or NO' }),
 });
 
+const adminAuthSchema = z.object({
+    pkpPublicKey: z.string().min(1, 'PKP public key is required'),
+    pkpEthAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+    sessionSigs: z.any(), // Session signatures object from Lit Protocol
+    expiresAt: z.string().datetime(), // ISO 8601 timestamp
+});
+
 export async function createServer(
     eventMonitor?: EventMonitorWorker,
     maturityMonitor?: MarketMaturityMonitor,
-    polymarketClient?: PolymarketClient
+    polymarketClient?: PolymarketClient,
+    vincentService?: VincentService
 ) {
     const fastify = Fastify({
         logger: false, // We're using our custom logger
@@ -57,6 +66,8 @@ export async function createServer(
                 eventMonitorStatus: '/api/monitor/event-status',
                 eventMonitorStats: '/api/monitor/event-stats',
                 maturityMonitorStatus: '/api/monitor/maturity-status',
+                vincentStatus: '/api/vincent/status',
+                adminAuth: '/api/admin/auth',
                 testPlaceBet: '/api/test/place-bet',
                 testCloseBet: '/api/test/close-bet',
             },
@@ -100,6 +111,76 @@ export async function createServer(
         }
 
         return maturityMonitor.getStatus();
+    });
+
+    // Vincent service status endpoint
+    fastify.get('/api/vincent/status', async (request, reply) => {
+        if (!vincentService) {
+            return reply.code(200).send({
+                vincentEnabled: false,
+                message: 'Vincent mode is disabled. Using direct private key signing.',
+            });
+        }
+
+        return vincentService.getStatus();
+    });
+
+    // Admin authentication endpoint (for Vincent delegation)
+    fastify.post('/api/admin/auth', async (request, reply) => {
+        if (!vincentService) {
+            return reply.code(400).send({
+                error: 'Vincent mode not enabled',
+                message: 'Set USE_VINCENT=true to use admin delegation',
+            });
+        }
+
+        try {
+            // Validate request body
+            const body = adminAuthSchema.parse(request.body);
+
+            log.info('Admin delegation received', {
+                pkpEthAddress: body.pkpEthAddress,
+                expiresAt: body.expiresAt,
+            });
+
+            // Store admin delegation credentials
+            vincentService.setAdminDelegation(
+                body.pkpPublicKey,
+                body.pkpEthAddress,
+                body.sessionSigs,
+                new Date(body.expiresAt)
+            );
+
+            log.info('Admin delegation stored successfully', {
+                pkpEthAddress: body.pkpEthAddress,
+            });
+
+            return reply.code(200).send({
+                success: true,
+                message: 'Admin delegation stored successfully',
+                data: {
+                    pkpEthAddress: body.pkpEthAddress,
+                    expiresAt: body.expiresAt,
+                },
+                timestamp: new Date().toISOString(),
+            });
+        } catch (error) {
+            log.error('Failed to store admin delegation', error);
+
+            if (error instanceof z.ZodError) {
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Invalid request body',
+                    details: error.errors,
+                });
+            }
+
+            return reply.code(500).send({
+                success: false,
+                error: 'Failed to store admin delegation',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
     });
 
     // Test endpoint: Place a bet on Polymarket
@@ -228,9 +309,10 @@ export async function startServer(
     host: string = '0.0.0.0',
     eventMonitor?: EventMonitorWorker,
     maturityMonitor?: MarketMaturityMonitor,
-    polymarketClient?: PolymarketClient
+    polymarketClient?: PolymarketClient,
+    vincentService?: VincentService
 ) {
-    const server = await createServer(eventMonitor, maturityMonitor, polymarketClient);
+    const server = await createServer(eventMonitor, maturityMonitor, polymarketClient, vincentService);
 
     try {
         await server.listen({ port, host });
