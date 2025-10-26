@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from inefficiency_detector import InefficiencyDetector
 from pricing.theoretical_engine import TheoreticalPricingEngine
 from portfolio.position_sizer import KellyPositionSizer
-from bridge_polymarket_client import PolymarketAPIClient
+from polymarket_client import PolymarketAPIClient
 
 # Configure logging
 logging.basicConfig(
@@ -509,7 +509,7 @@ class StrategyScanner:
         
         Args:
             assets: List of assets to scan (default: BTC, ETH)
-            mock_data: Use mock data for testing
+            mock_data: Use mock client instead of real API
             
         Returns:
             List of deployed strategies
@@ -519,21 +519,26 @@ class StrategyScanner:
         
         self.logger.info(f"Starting strategy scanning for assets: {assets}")
         
+        # Use mock client if requested, otherwise use real API
+        if mock_data:
+            from polymarket_client import MockPolymarketAPIClient
+            self.market_data = PolymarketMarketData(MockPolymarketAPIClient())
+            self.logger.warning("⚠️  Using MOCK market data (no real API calls)")
+        
         for asset in assets:
             self.logger.info(f"\n{'='*60}")
             self.logger.info(f"Scanning {asset} markets...")
             self.logger.info(f"{'='*60}")
             
             try:
-                # Step 1: Fetch markets
-                if mock_data:
-                    markets = self._get_mock_markets(asset)
-                else:
-                    markets = await self.market_data.fetch_active_markets(asset)
+                # Step 1: Fetch markets from Polymarket API (no hardcoding!)
+                markets = await self.market_data.fetch_active_markets(asset)
                 
                 if not markets:
                     self.logger.warning(f"No markets found for {asset}")
                     continue
+                
+                self.logger.info(f"✅ Fetched {len(markets)} {asset} markets from Polymarket API")
                 
                 # Step 2: Price markets and detect inefficiencies
                 self.logger.info(f"Analyzing {len(markets)} {asset} markets for inefficiencies...")
@@ -550,7 +555,7 @@ class StrategyScanner:
                 opportunities = self.inefficiency_detector.get_opportunities(opportunities_df)
                 summary = self.inefficiency_detector.generate_summary(opportunities)
                 
-                self.logger.info(f"\nOpportunity Summary:")
+                self.logger.info(f"\n📊 Opportunity Summary for {asset}:")
                 for category, stats in summary.items():
                     if stats['count'] > 0:
                         self.logger.info(
@@ -562,7 +567,7 @@ class StrategyScanner:
                 opportunity_groups = self.strategy_grouper.group_opportunities(
                     opportunities_df
                 )
-                self.logger.info(f"\nFormed {len(opportunity_groups)} strategy groups")
+                self.logger.info(f"\n✅ Formed {len(opportunity_groups)} strategy groups")
                 
                 # Step 4: Construct and deploy strategies
                 net_amount_usdc = 1000  # Default for strategy construction
@@ -571,7 +576,7 @@ class StrategyScanner:
                 for group_idx, opportunity_group in enumerate(opportunity_groups):
                     strategy_id = strategy_id_start + group_idx
                     
-                    self.logger.info(f"\nConstructing strategy {strategy_id}...")
+                    self.logger.info(f"\n🏗️  Constructing strategy {strategy_id}...")
                     
                     strategy_def = self.strategy_constructor.construct_strategy(
                         opportunity_group,
@@ -580,7 +585,7 @@ class StrategyScanner:
                     )
                     
                     # Deploy to contract
-                    self.logger.info(f"Deploying strategy {strategy_id} to smart contract...")
+                    self.logger.info(f"📤 Deploying strategy {strategy_id} to smart contract...")
                     
                     try:
                         tx_hash = await self.contract_deployer.deploy_strategy(strategy_def)
@@ -592,51 +597,14 @@ class StrategyScanner:
                         continue
             
             except Exception as e:
-                self.logger.error(f"Error scanning {asset}: {e}")
+                self.logger.error(f"Error scanning {asset}: {e}", exc_info=True)
                 continue
         
         self.logger.info(f"\n{'='*60}")
-        self.logger.info(f"Scanning complete. Deployed {len(deployed_strategies)} strategies")
+        self.logger.info(f"✅ Scanning complete. Deployed {len(deployed_strategies)} strategies")
         self.logger.info(f"{'='*60}")
         
         return deployed_strategies
-    
-    def _get_mock_markets(self, asset: str) -> List[Dict]:
-        """Get mock market data for testing"""
-        if asset == "BTC":
-            return [
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_200k',
-                    'current_price': 107127,
-                    'target_price': 200000,
-                    'market_price': 0.007,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_150k',
-                    'current_price': 107127,
-                    'target_price': 150000,
-                    'market_price': 0.025,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_110k',
-                    'current_price': 107127,
-                    'target_price': 110000,
-                    'market_price': 0.18,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-            ]
-        return []
 
 
 # Example usage

@@ -10,9 +10,9 @@ const GMX_ADDRESSES = {
   },
   arbitrumSepolia: {
     // Sepolia testnet addresses (if available)
-    exchangeRouter: "0x0000000000000000000000000000000000000000",
-    router: "0x0000000000000000000000000000000000000000",
-    usdc: "0x0000000000000000000000000000000000000000",
+    exchangeRouter: "0x657F9215FA1e839FbA15cF44B1C00D95cF71ed10",
+    router: "0x72F13a44C8ba16a678CAD549F17bc9e06d2B8bD2",
+    usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
   },
 };
 

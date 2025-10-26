@@ -1,0 +1,18 @@
+# Web3 and Ethereum Integration
+web3>=7.0.0
+eth-account>=0.10.0
+eth-typing>=4.0.0
+
+# Async HTTP Client
+httpx>=0.25.0
+
+# Data Analysis & Math
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.11.0
+
+# Logging & Utilities
+python-dotenv>=1.0.0
+
+# Type Hints
+typing-extensions>=4.5.0

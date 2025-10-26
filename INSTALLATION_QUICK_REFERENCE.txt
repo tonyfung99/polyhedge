@@ -1,0 +1,137 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║         POLYHEDGE PYTHON SETUP - QUICK REFERENCE CARD                      ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 PROBLEM:
+  ModuleNotFoundError: No module named 'web3'
+
+✅ SOLUTION:
+  Install Python dependencies in a virtual environment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ ONE-COMMAND SETUP:
+  
+  bash /Users/tonyfung/polyhedge/setup_python_env.sh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 STEP-BY-STEP MANUAL SETUP:
+
+1. Create virtual environment:
+   cd /Users/tonyfung/polyhedge
+   python3 -m venv venv
+
+2. Activate it:
+   source venv/bin/activate
+   (Expect to see "(venv)" in your prompt)
+
+3. Install all Python packages:
+   pip install -r packages/python/scanner/requirements.txt
+
+4. Verify everything works:
+   python -c "import web3; print('✅ Web3 ready!')"
+
+5. Run the scanner:
+   python packages/python/scanner/strategy_scanner.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 PACKAGES THAT GET INSTALLED:
+
+✓ web3               - Ethereum blockchain interaction
+✓ eth-account        - Private key management
+✓ httpx              - Async HTTP client
+✓ pandas             - Data analysis
+✓ numpy              - Numerical computing
+✓ scipy              - Scientific functions
+✓ python-dotenv      - Environment variables
+✓ eth-typing         - Type hints
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔑 KEY POINTS:
+
+• ALWAYS use virtual environment (venv), never system Python
+• Activate with: source venv/bin/activate
+• Install with: pip install -r requirements.txt
+• Test with: python -c "import web3; print('ok')"
+• Deactivate when done: deactivate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏰ EVERY NEW TERMINAL SESSION:
+
+$ source /Users/tonyfung/polyhedge/venv/bin/activate
+$ cd /Users/tonyfung/polyhedge/packages/python/scanner
+$ python -m strategy_scanner
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ TROUBLESHOOTING CHEAT SHEET:
+
+Error: "ModuleNotFoundError: No module named 'web3'"
+  → Activate venv: source venv/bin/activate
+
+Error: "Permission denied"
+  → Use venv instead of system Python
+  → NEVER use sudo with pip
+
+Error: "SSL Certificate Error"
+  → Use venv (it bypasses this usually)
+
+Error: Everything still broken
+  → Complete reinstall:
+    rm -rf venv
+    bash setup_python_env.sh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION FILES:
+
+1. PYTHON_SETUP_GUIDE.md
+   → Full detailed guide with all options
+   → Troubleshooting section
+   → All explanations
+
+2. setup_python_env.sh
+   → Automated setup script
+   → Handles everything automatically
+   → Use this if you want 1-command setup
+
+3. packages/python/scanner/requirements.txt
+   → List of all Python packages
+   → Edit this to add more packages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ YOU'RE DONE WHEN:
+
+✓ No errors from "import web3"
+✓ strategy_scanner.py starts without errors
+✓ Mock data scanner produces output
+
+Then you can:
+  • Test with real Polymarket API
+  • Deploy strategies to smart contract
+  • Run continuous scanning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 READY? START HERE:
+
+Option A - Automated (Recommended):
+  bash /Users/tonyfung/polyhedge/setup_python_env.sh
+
+Option B - Manual:
+  cd /Users/tonyfung/polyhedge
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r packages/python/scanner/requirements.txt
+
+Then:
+  python packages/python/scanner/strategy_scanner.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

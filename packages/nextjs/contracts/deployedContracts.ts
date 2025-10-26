@@ -4,6 +4,1320 @@
  */
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
-const deployedContracts = {} as const;
+const deployedContracts = {
+  421614: {
+    HedgeExecutor: {
+      address: "0x67b059F3f838Ce25896635AcEd41a2ba5f175446",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_gmxExchangeRouter",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "_gmxRouter",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "_usdc",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "realizedPnL",
+              type: "uint256",
+            },
+          ],
+          name: "HedgeOrderClosed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "asset",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "isLong",
+              type: "bool",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "bytes32",
+              name: "gmxOrderKey",
+              type: "bytes32",
+            },
+          ],
+          name: "HedgeOrderCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "bytes32",
+              name: "gmxOrderKey",
+              type: "bytes32",
+            },
+          ],
+          name: "HedgeOrderExecuted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+          ],
+          name: "MessageReceived",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          name: "assetMarkets",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "int256",
+              name: "realizedPnL",
+              type: "int256",
+            },
+          ],
+          name: "closeHedgeOrder",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "asset",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "isLong",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "maxSlippageBps",
+              type: "uint256",
+            },
+          ],
+          name: "createHedgeOrder",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+          ],
+          name: "getHedgeOrder",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "uint256",
+                  name: "strategyId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "user",
+                  type: "address",
+                },
+                {
+                  internalType: "string",
+                  name: "asset",
+                  type: "string",
+                },
+                {
+                  internalType: "bool",
+                  name: "isLong",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "maxSlippageBps",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bool",
+                  name: "executed",
+                  type: "bool",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "gmxOrderKey",
+                  type: "bytes32",
+                },
+              ],
+              internalType: "struct HedgeExecutor.HedgeOrder",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "gmxOrderKey",
+              type: "bytes32",
+            },
+          ],
+          name: "getStrategyIdFromGMXOrder",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "gmxExchangeRouter",
+          outputs: [
+            {
+              internalType: "contract IGMXExchangeRouter",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          name: "gmxKeyToStrategyId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "gmxRouter",
+          outputs: [
+            {
+              internalType: "contract IGMXRouter",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "hedgeOrders",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "asset",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "isLong",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "maxSlippageBps",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "executed",
+              type: "bool",
+            },
+            {
+              internalType: "bytes32",
+              name: "gmxOrderKey",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+          ],
+          name: "isOrderExecuted",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "ordersClosed",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "asset",
+              type: "string",
+            },
+            {
+              internalType: "address",
+              name: "marketAddress",
+              type: "address",
+            },
+          ],
+          name: "setAssetMarket",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_strategyManager",
+              type: "address",
+            },
+          ],
+          name: "setStrategyManager",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "strategyManager",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "usdc",
+          outputs: [
+            {
+              internalType: "contract IERC20",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "withdrawUSDC",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 208617176,
+    },
+    StrategyManager: {
+      address: "0xc707d360BEc8048760F028f852cF1E244d155710",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_usdc",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "_hedgeExecutor",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "success",
+              type: "bool",
+            },
+          ],
+          name: "OrdersExecuted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "payoutAmount",
+              type: "uint256",
+            },
+          ],
+          name: "StrategyClaimed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "maturityTs",
+              type: "uint256",
+            },
+          ],
+          name: "StrategyCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "grossAmount",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "netAmount",
+              type: "uint256",
+            },
+          ],
+          name: "StrategyPurchased",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "payoutPerUSDC",
+              type: "uint256",
+            },
+          ],
+          name: "StrategySettled",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "grossAmount",
+              type: "uint256",
+            },
+          ],
+          name: "buyStrategy",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+          ],
+          name: "claimStrategy",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "feeBps",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "maturityTs",
+              type: "uint256",
+            },
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "marketId",
+                  type: "string",
+                },
+                {
+                  internalType: "bool",
+                  name: "isYes",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "maxPriceBps",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct StrategyManager.PolymarketOrder[]",
+              name: "pmOrders",
+              type: "tuple[]",
+            },
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "dex",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "asset",
+                  type: "string",
+                },
+                {
+                  internalType: "bool",
+                  name: "isLong",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "maxSlippageBps",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct StrategyManager.HedgeOrder[]",
+              name: "hedgeOrders",
+              type: "tuple[]",
+            },
+            {
+              internalType: "uint256",
+              name: "expectedProfitBps",
+              type: "uint256",
+            },
+          ],
+          name: "createStrategy",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "hedgeExecutor",
+          outputs: [
+            {
+              internalType: "contract IHedgeExecutor",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "nextStrategyId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "bool",
+              name: "success",
+              type: "bool",
+            },
+          ],
+          name: "reportExecutionStatus",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "payoutPerUSDC",
+              type: "uint256",
+            },
+          ],
+          name: "settleStrategy",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "strategies",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "feeBps",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "maturityTs",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "active",
+              type: "bool",
+            },
+            {
+              components: [
+                {
+                  components: [
+                    {
+                      internalType: "string",
+                      name: "marketId",
+                      type: "string",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "isYes",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "amount",
+                      type: "uint256",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "maxPriceBps",
+                      type: "uint256",
+                    },
+                  ],
+                  internalType: "struct StrategyManager.PolymarketOrder[]",
+                  name: "polymarketOrders",
+                  type: "tuple[]",
+                },
+                {
+                  components: [
+                    {
+                      internalType: "string",
+                      name: "dex",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "asset",
+                      type: "string",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "isLong",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "amount",
+                      type: "uint256",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "maxSlippageBps",
+                      type: "uint256",
+                    },
+                  ],
+                  internalType: "struct StrategyManager.HedgeOrder[]",
+                  name: "hedgeOrders",
+                  type: "tuple[]",
+                },
+                {
+                  internalType: "uint256",
+                  name: "expectedProfitBps",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct StrategyManager.StrategyDetails",
+              name: "details",
+              type: "tuple",
+            },
+            {
+              internalType: "bool",
+              name: "settled",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "payoutPerUSDC",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "usdc",
+          outputs: [
+            {
+              internalType: "contract IERC20",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "userPositions",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "purchaseTs",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "claimed",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 208617192,
+    },
+    YourContract: {
+      address: "0x0F2077f5a12c97bfDeb5EeD2beeF228c137fA725",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_owner",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "greetingSetter",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "newGreeting",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "premium",
+              type: "bool",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "value",
+              type: "uint256",
+            },
+          ],
+          name: "GreetingChange",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "greeting",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "premium",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_newGreeting",
+              type: "string",
+            },
+          ],
+          name: "setGreeting",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "totalCounter",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "userGreetingCounter",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "withdraw",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          stateMutability: "payable",
+          type: "receive",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 208616463,
+    },
+  },
+} as const;
 
 export default deployedContracts satisfies GenericContractsDeclaration;
