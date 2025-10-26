@@ -14,6 +14,7 @@ const polymarketOrderSchema = z.object({
 const strategySchema = z.object({
     id: z.coerce.bigint(),
     name: z.string().min(1),
+    conditionId: z.string().optional(), // Polymarket condition ID for market maturity checks
     polymarketOrders: z.array(polymarketOrderSchema).min(1),
 });
 
@@ -34,10 +35,12 @@ const appConfigSchema = z.object({
     strategiesPath: z.string().optional(),
     polymarketHost: z.string().url().default('https://clob.polymarket.com'),
     polymarketChainId: z.coerce.number().int().default(137),
-    polymarketPrivateKey: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
-    polymarketApiKey: z.string().optional(),
-    polymarketApiSecret: z.string().optional(),
-    polymarketApiPassphrase: z.string().optional(),
+    // Vincent SDK configuration (preferred for hackathon)
+    useVincent: z.coerce.boolean().default(false),
+    vincentAppId: z.string().optional(),
+    litNetwork: z.enum(['datil', 'datil-dev', 'datil-test']).default('datil-dev'),
+    // Fallback: direct private key (kept for backward compatibility)
+    polymarketPrivateKey: z.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
     polymarketSignatureType: z.coerce.number().int().nonnegative().optional(),
     polymarketFunderAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 });
@@ -60,13 +63,26 @@ export function loadAppConfig(): AppConfig {
         hypersyncBatchSize: process.env.HYPERSYNC_BATCH_SIZE,
         polymarketHost: process.env.POLYMARKET_HOST,
         polymarketChainId: process.env.POLYMARKET_CHAIN_ID,
-        polymarketPrivateKey: requireEnv('POLYMARKET_PRIVATE_KEY'),
-        polymarketApiKey: process.env.POLYMARKET_API_KEY,
-        polymarketApiSecret: process.env.POLYMARKET_API_SECRET,
-        polymarketApiPassphrase: process.env.POLYMARKET_API_PASSPHRASE,
+        // Vincent configuration
+        useVincent: process.env.USE_VINCENT,
+        vincentAppId: process.env.VINCENT_APP_ID,
+        litNetwork: process.env.LIT_NETWORK,
+        // Fallback to private key
+        polymarketPrivateKey: process.env.POLYMARKET_PRIVATE_KEY,
         polymarketSignatureType: process.env.POLYMARKET_SIGNATURE_TYPE,
         polymarketFunderAddress: process.env.POLYMARKET_FUNDER_ADDRESS,
     });
+
+    // Validate: Must have either Vincent enabled or private key
+    if (parsed.useVincent) {
+        if (!parsed.vincentAppId) {
+            throw new Error('VINCENT_APP_ID is required when USE_VINCENT=true');
+        }
+    } else {
+        if (!parsed.polymarketPrivateKey) {
+            throw new Error('POLYMARKET_PRIVATE_KEY is required when USE_VINCENT=false');
+        }
+    }
 
     const strategies = loadStrategies(parsed.strategiesPath);
 
@@ -100,6 +116,7 @@ function loadStrategies(pathOverride?: string): Map<bigint, StrategyDefinition> 
         const definition: StrategyDefinition = {
             id: strategy.id,
             name: strategy.name,
+            conditionId: strategy.conditionId,
             polymarketOrders: orders,
             totalNotionalBps: totalBps,
         };

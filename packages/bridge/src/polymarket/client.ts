@@ -5,24 +5,60 @@ import { AppConfig } from '../config/env.js';
 import { PolymarketOrderIntent, PolymarketPosition } from '../types.js';
 import { createLogger } from '../utils/logger.js';
 import { createLimiter, retry } from '../utils/promise.js';
+import { VincentService } from '../services/vincent-service.js';
 
 const log = createLogger('polymarket-client');
 
 export class PolymarketClient {
     private readonly client: ClobClient;
     private readonly runWithLimit: ReturnType<typeof createLimiter>['run'];
+    private readonly config: AppConfig;
+    private readonly vincentService?: VincentService;
+    private readonly useVincent: boolean;
 
-    constructor(config: AppConfig) {
+    constructor(config: AppConfig, vincentService?: VincentService) {
+        this.config = config;
+        this.vincentService = vincentService;
+        this.useVincent = config.useVincent;
+
+        if (this.useVincent && !vincentService) {
+            throw new Error('Vincent service required when USE_VINCENT=true');
+        }
+
+        // Initialize CLOB client only if not using Vincent
+        // When using Vincent, trades are executed via Lit Actions
         const provider = new JsonRpcProvider(config.polygonRpcUrl);
-        const signer = new Wallet(config.polymarketPrivateKey, provider);
-        this.client = new ClobClient(
-            config.polymarketHost,
-            config.polymarketChainId,
-            signer as any, // CLOB client has older ethers type definitions
-            undefined,
-            config.polymarketSignatureType,
-            config.polymarketFunderAddress,
-        );
+        
+        if (!this.useVincent) {
+            log.info('Using direct private key signing for Polymarket');
+            const signer = new Wallet(config.polymarketPrivateKey!, provider);
+            this.client = new ClobClient(
+                config.polymarketHost,
+                config.polymarketChainId,
+                signer as any, // CLOB client has older ethers type definitions
+                undefined,
+                config.polymarketSignatureType,
+                config.polymarketFunderAddress,
+            );
+        } else {
+            log.info('Using Vincent PKP signing for Polymarket');
+            // When using Vincent, we'll execute trades via Lit Actions
+            // CLOB client initialization is deferred or not needed
+            // We'll use the Vincent service directly
+            
+            // For now, create a dummy client (won't be used)
+            // In production, you might implement a custom signer that uses Vincent
+            const dummySigner = new Wallet(Wallet.createRandom().privateKey, provider);
+            this.client = new ClobClient(
+                config.polymarketHost,
+                config.polymarketChainId,
+                dummySigner as any,
+                undefined,
+                config.polymarketSignatureType,
+                config.polymarketFunderAddress,
+            );
+        }
+
         this.runWithLimit = createLimiter(config.maxOrderConcurrency).run;
     }
 
@@ -38,21 +74,40 @@ export class PolymarketClient {
                         quoteAmount: intent.quoteAmount.toString(),
                         side,
                         limitPriceBps: intent.limitPriceBps,
+                        mode: this.useVincent ? 'Vincent PKP' : 'Direct',
                     });
 
-                    await this.client.createAndPostMarketOrder(
-                        {
-                            tokenID: intent.tokenId,
+                    if (this.useVincent) {
+                        // Execute trade via custom Vincent Ability with PKP signing
+                        // This uses our @polyhedge/vincent-ability-polymarket-bet
+                        const result = await this.vincentService!.executePolymarketTrade({
+                            tokenId: intent.tokenId,
+                            side: intent.side,
                             amount,
-                            side,
-                        },
-                        {
-                            negRisk: false,
-                            tickSize: '0.001',
-                        },
-                        OrderType.FOK,
-                        true,
-                    );
+                            price: intent.limitPriceBps / 10000,
+                        });
+                        
+                        log.info('Trade executed via Vincent Ability', {
+                            success: result.success,
+                            orderId: result.orderId,
+                            status: result.status,
+                        });
+                    } else {
+                        // Execute directly with private key
+                        await this.client.createAndPostMarketOrder(
+                            {
+                                tokenID: intent.tokenId,
+                                amount,
+                                side,
+                            },
+                            {
+                                negRisk: false,
+                                tickSize: '0.001',
+                            },
+                            OrderType.FOK,
+                            true,
+                        );
+                    }
                 },
                 3,
                 1_000,

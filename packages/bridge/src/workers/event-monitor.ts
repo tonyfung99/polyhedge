@@ -3,6 +3,7 @@ import { createMonitoringConfig } from '../monitoring/config.js';
 import { decodeStrategyPurchasedLog } from '../monitoring/decoder.js';
 import { createLogger } from '../utils/logger.js';
 import { StrategyPurchaseExecutor } from '../services/executor.js';
+import { VincentService } from '../services/vincent-service.js';
 import { AppConfig } from '../config/env.js';
 import { StrategyPurchasedEvent } from '../types.js';
 
@@ -38,14 +39,14 @@ export class EventMonitorWorker {
         startTime: new Date(),
     };
 
-    constructor(appConfig: AppConfig) {
+    constructor(appConfig: AppConfig, vincentService?: VincentService) {
         this.config = appConfig;
         this.monitoringConfig = createMonitoringConfig(appConfig);
         this.client = HypersyncClient.new(this.monitoringConfig.clientConfig);
         this.decoder = Decoder.fromSignatures([
             'StrategyPurchased(uint256 indexed strategyId, address indexed user, uint256 grossAmount, uint256 netAmount)',
         ]);
-        this.executor = new StrategyPurchaseExecutor(appConfig);
+        this.executor = new StrategyPurchaseExecutor(appConfig, vincentService);
         this.stats.currentBlock = this.monitoringConfig.startBlock;
     }
 

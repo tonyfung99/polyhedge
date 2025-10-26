@@ -3,6 +3,7 @@ import { AppConfig } from '../config/env.js';
 import { PolymarketOrderIntent } from '../types.js';
 import { createLogger } from '../utils/logger.js';
 import { PolymarketClient } from '../polymarket/client.js';
+import { VincentService } from './vincent-service.js';
 
 const log = createLogger('strategy-executor');
 
@@ -10,9 +11,9 @@ export class StrategyPurchaseExecutor {
     private readonly config: AppConfig;
     private readonly polymarket: PolymarketClient;
 
-    constructor(config: AppConfig) {
+    constructor(config: AppConfig, vincentService?: VincentService) {
         this.config = config;
-        this.polymarket = new PolymarketClient(config);
+        this.polymarket = new PolymarketClient(config, vincentService);
     }
 
     async handleStrategyPurchase(event: StrategyPurchasedEvent) {

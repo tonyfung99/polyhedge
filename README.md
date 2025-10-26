@@ -158,7 +158,7 @@ Visit `http://localhost:3000` to see the application.
 
 ### 1. Strategy-Based System
 
-- Pre-constructed hedging strategys for easy user adoption
+- Pre-constructed hedging strategies for crypto price predictions
 - Automated market scanning and strategy creation
 - One-click strategy purchase and management
 - Risk-managed arbitrage opportunities
@@ -179,27 +179,27 @@ Visit `http://localhost:3000` to see the application.
 
 ### 4. User Interface
 
-- Strategy marketplace for browsing opportunities
+- Strategy marketplace for crypto price opportunities
 - User dashboard for position tracking
 - One-click strategy purchase and claim interface
 - Real-time PNL visualization
 
 ## 📊 Mathematical Foundation
 
-### Black-Scholes Barrier Options
+### Black-Scholes Barrier Options for Crypto Prices
 
-Polymarket bets are modeled as digital barrier options:
+Polymarket crypto price bets are modeled as digital barrier options:
 
 ```
 Theoretical Price = P(max(S_t) ≥ H)
 
 where:
-- S_t = asset price at time t
+- S_t = crypto asset price at time t
 - H = barrier (target price)
 - P = probability under risk-neutral measure
 ```
 
-### Current Market Inefficiencies
+### Current Market Inefficiencies (BTC Price Predictions)
 
 | Market     | Market Price | Theoretical | Edge       | Action         |
 | ---------- | ------------ | ----------- | ---------- | -------------- |
@@ -214,8 +214,7 @@ where:
 
 1. **Problem Statement** (30s)
 
-   - "Polymarket has massive inefficiencies"
-   - "Manual arbitrage is complex and risky"
+   - "Polymarket has massive inefficiencies in crypto price predictions"
 
 2. **Show Opportunities** (60s)
 

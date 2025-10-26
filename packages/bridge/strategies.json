@@ -1,37 +1,25 @@
 {
-    "strategies": [
+  "strategies": [
+    {
+      "id": 1,
+      "name": "Will Bitcoin reach $200k in October?",
+      "conditionId": "0x25e73d2f118e87fc15df7cf736172737f0b82b7ec6ca6a24cd67ae341ed760fb",
+      "polymarketOrders": [
         {
-            "id": 1,
-            "name": "Test Strategy - Trump Win Hedge",
-            "polymarketOrders": [
-                {
-                    "marketId": "21742633143463906290569050155826241533067272736897614950488156847949938836455",
-                    "outcome": "YES",
-                    "priority": 1,
-                    "notionalBps": 5000,
-                    "maxPriceBps": 7500
-                },
-                {
-                    "marketId": "69236923620077691027083946871148646972011131466059644796654161903044970987404",
-                    "outcome": "NO",
-                    "priority": 2,
-                    "notionalBps": 5000,
-                    "maxPriceBps": 6000
-                }
-            ]
+          "marketId": "70224002415726915146697406828863644162763565870559027191380082229342088681891",
+          "outcome": "YES",
+          "priority": 1,
+          "notionalBps": 5000,
+          "maxPriceBps": 7500
         },
         {
-            "id": 2,
-            "name": "Test Strategy - Single Market",
-            "polymarketOrders": [
-                {
-                    "marketId": "21742633143463906290569050155826241533067272736897614950488156847949938836455",
-                    "outcome": "YES",
-                    "priority": 1,
-                    "notionalBps": 10000,
-                    "maxPriceBps": 8000
-                }
-            ]
+          "marketId": "70675888591821022661888822332310350865640025923189889375444789233897528725031",
+          "outcome": "NO",
+          "priority": 2,
+          "notionalBps": 5000,
+          "maxPriceBps": 6000
         }
-    ]
+      ]
+    }
+  ]
 }

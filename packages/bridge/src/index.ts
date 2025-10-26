@@ -2,6 +2,8 @@ import 'dotenv/config';
 import { startServer } from './server.js';
 import { EventMonitorWorker } from './workers/event-monitor.js';
 import { MarketMaturityMonitor } from './workers/market-maturity-monitor.js';
+import { PolymarketClient } from './polymarket/client.js';
+import { VincentService } from './services/vincent-service.js';
 import { loadAppConfig } from './config/env.js';
 import { createLogger } from './utils/logger.js';
 
@@ -13,8 +15,25 @@ async function bootstrap() {
     const appConfig = loadAppConfig();
     log.info('Configuration loaded successfully');
 
+    // Initialize Vincent service (if enabled)
+    let vincentService: VincentService | undefined;
+    if (appConfig.useVincent) {
+      log.info('Initializing Vincent service for PKP-based signing');
+      vincentService = new VincentService(appConfig);
+      await vincentService.initialize();
+      log.info('Vincent service initialized successfully');
+    } else {
+      log.info('Vincent mode disabled, using direct private key signing');
+    }
+
+    // Initialize Polymarket client (with Vincent service if enabled)
+    const polymarketClient = new PolymarketClient(appConfig, vincentService);
+    log.info('Polymarket client initialized', {
+      mode: appConfig.useVincent ? 'Vincent PKP' : 'Direct',
+    });
+
     // Create event monitor worker (for detecting StrategyPurchased events)
-    const eventMonitor = new EventMonitorWorker(appConfig);
+    const eventMonitor = new EventMonitorWorker(appConfig, vincentService);
 
     // Create market maturity monitor (for automatic settlement)
     const pollIntervalMs = Number(process.env.MARKET_POLL_INTERVAL_MS) || 5000;
@@ -27,10 +46,10 @@ async function bootstrap() {
       log.info('🧪 TEST MODE ENABLED');
     }
 
-    // Start API server with monitor references
+    // Start API server with monitor references, Polymarket client, and Vincent service
     const port = Number(process.env.PORT) || 3001;
     const host = process.env.HOST || '0.0.0.0';
-    const server = await startServer(port, host, eventMonitor, maturityMonitor);
+    const server = await startServer(port, host, eventMonitor, maturityMonitor, polymarketClient, vincentService);
 
     // Start event monitor worker (for strategy purchases)
     if (testMode) {
@@ -65,6 +84,11 @@ async function bootstrap() {
       // Stop both monitors
       eventMonitor.stop();
       maturityMonitor.stop();
+
+      // Disconnect Vincent service
+      if (vincentService) {
+        await vincentService.disconnect();
+      }
 
       // Close server
       await server.close();

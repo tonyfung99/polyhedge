@@ -17,10 +17,14 @@
   "dependencies": {
     "@envio-dev/hypersync-client": "^0.6.6",
     "@fastify/cors": "^11.1.0",
+    "@lit-protocol/auth-helpers": "^6.4.0",
+    "@lit-protocol/constants": "^6.4.0",
+    "@lit-protocol/lit-node-client": "^6.4.0",
     "@polymarket/clob-client": "^4.22.7",
     "dotenv": "^16.4.5",
     "ethers": "^6.10.0",
     "fastify": "^5.6.1",
+    "siwe": "^3.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

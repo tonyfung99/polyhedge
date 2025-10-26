@@ -1,0 +1,310 @@
+.vincent-login-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.vincent-login-container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(45deg, #646cff, #747bff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.config-info {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.config-item {
+  margin: 0.5rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.config-item strong {
+  color: #646cff;
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.primary-button,
+.success-button,
+.info-button,
+.secondary-button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.primary-button {
+  background: linear-gradient(45deg, #646cff, #747bff);
+  border-color: #646cff;
+  color: white;
+}
+
+.primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100, 108, 255, 0.4);
+}
+
+.success-button {
+  background: linear-gradient(45deg, #42b883, #35495e);
+  border-color: #42b883;
+  color: white;
+}
+
+.success-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 184, 131, 0.4);
+}
+
+.info-button {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  border-color: #3498db;
+  color: white;
+}
+
+.info-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.secondary-button {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.secondary-button:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.status-box {
+  margin: 2rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.status-box.success {
+  background: rgba(66, 184, 131, 0.2);
+  border: 2px solid rgba(66, 184, 131, 0.5);
+  color: #42b883;
+}
+
+.status-box.error {
+  background: rgba(255, 107, 107, 0.2);
+  border: 2px solid rgba(255, 107, 107, 0.5);
+  color: #ff6b6b;
+}
+
+.error-box {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(255, 0, 0, 0.1);
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #646cff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.info-panel {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(100, 108, 255, 0.1);
+  border: 2px solid rgba(100, 108, 255, 0.3);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.info-panel h3 {
+  margin-top: 0;
+  color: #646cff;
+}
+
+.info-item {
+  margin: 1rem 0;
+}
+
+.info-item strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #646cff;
+}
+
+.info-item code {
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.info-item code.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jwt-details {
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.jwt-details summary {
+  cursor: pointer;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.jwt-details summary:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.jwt-details textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: inherit;
+  resize: vertical;
+}
+
+.instructions {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.instructions h3 {
+  margin-top: 0;
+  color: #646cff;
+}
+
+.instructions ol {
+  line-height: 2;
+  padding-left: 1.5rem;
+}
+
+.instructions li {
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .button-group {
+    grid-template-columns: 1fr;
+  }
+
+  .vincent-login-container {
+    padding: 1rem;
+  }
+
+  .vincent-login-container h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .vincent-login-container {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .subtitle {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .config-info {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .secondary-button {
+    border-color: rgba(0, 0, 0, 0.3);
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .secondary-button:hover:not(:disabled) {
+    border-color: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .jwt-details summary {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .jwt-details summary:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .jwt-details textarea {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .instructions {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .info-item code {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
