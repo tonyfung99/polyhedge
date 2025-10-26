@@ -5,14 +5,17 @@ This guide explains how to test buying strategies on the deployed Arbitrum Sepol
 ## Prerequisites
 
 ### 1. Get Testnet ETH
+
 You need Arbitrum Sepolia ETH for gas fees.
 
 **Faucet:** https://www.alchemy.com/faucets/arbitrum-sepolia
 
 ### 2. Get Testnet USDC
+
 You need testnet USDC to buy strategies.
 
 **Option 1: Bridge from Sepolia**
+
 1. Get Sepolia ETH from https://www.alchemy.com/faucets/ethereum-sepolia
 2. Get Sepolia USDC from Circle faucet or Aave faucet
 3. Bridge to Arbitrum Sepolia: https://bridge.arbitrum.io/?destinationChain=arbitrum-sepolia
@@ -21,11 +24,13 @@ You need testnet USDC to buy strategies.
 Check for Arbitrum Sepolia USDC faucets
 
 **USDC Contract Address (Arbitrum Sepolia):**
+
 ```
 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ```
 
 ### 3. Environment Setup
+
 Make sure your `.env` file is configured:
 
 ```bash
@@ -189,6 +194,7 @@ python run_strategy_scanner.py
 ### Transaction Reverts
 
 **Check:**
+
 1. You have enough USDC balance
 2. You've approved USDC spending
 3. The strategy is still active and not settled
@@ -218,6 +224,7 @@ https://sepolia.arbiscan.io/tx/YOUR_TX_HASH
 ```
 
 You should see:
+
 - ✅ USDC transfer to StrategyManager
 - ✅ StrategyPurchased event
 - ✅ Calls to HedgeExecutor contract
@@ -244,6 +251,7 @@ USDC: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ```
 
 View on Arbiscan:
+
 - StrategyManager: https://sepolia.arbiscan.io/address/0xc707d360BEc8048760F028f852cF1E244d155710
 - HedgeExecutor: https://sepolia.arbiscan.io/address/0x2E36c4c99eE4F94EaF765cD3d030F0a1Ca2d49C6
 
@@ -269,8 +277,8 @@ const positions = await strategyManager.userPositions(yourAddress, 0);
 ## Support
 
 If you encounter issues:
+
 1. Check the troubleshooting section above
 2. Verify your balances (ETH & USDC)
 3. Check that strategies exist and are active
 4. Review transaction on Arbiscan for revert reasons
-
