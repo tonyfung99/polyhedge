@@ -5,7 +5,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 // All addresses are properly checksummed for EIP-55 compliance
 const GMX_ADDRESSES = {
   arbitrum: {
-    exchangeRouter: "0x7c68C7866E5462E8B5a2D71Cc2cDe01d9Cbd1677",
+    exchangeRouter: "0x87d66368cD08a7Ca42252f5ab44B2fb6d1Fb8d15",
     router: "0x7452c558d45f8afC8c83dAe62C3f8A5BE19c71f6",
     usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
   },

@@ -34,11 +34,11 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 
-def load_contract_abi(contract_name: str) -> dict:
+def load_contract_abi(contract_name: str, network: str = "arbitrum") -> dict:
     """Load contract ABI from deployment JSON file"""
     try:
         # Path to hardhat deployments
-        deployment_path = Path(__file__).parent.parent.parent / "hardhat" / "deployments" / "arbitrumSepolia"
+        deployment_path = Path(__file__).parent.parent.parent / "hardhat" / "deployments" / network
         
         # Load from deployment JSON
         deployment_file = deployment_path / f"{contract_name}.json"
@@ -101,7 +101,7 @@ def _get_fallback_abi(contract_name: str) -> dict:
     return []
 
 
-def get_strategy_manager_address() -> str:
+def get_strategy_manager_address(network: str = "arbitrum") -> str:
     """Get StrategyManager address from deployment or environment"""
     # Try environment variable first
     if os.getenv('STRATEGY_MANAGER_ADDRESS'):
@@ -111,7 +111,7 @@ def get_strategy_manager_address() -> str:
     try:
         deployment_file = (
             Path(__file__).parent.parent.parent / "hardhat" / 
-            "deployments" / "arbitrumSepolia" / "StrategyManager.json"
+            "deployments" / network / "StrategyManager.json"
         )
         if deployment_file.exists():
             with open(deployment_file, 'r') as f:
@@ -123,8 +123,8 @@ def get_strategy_manager_address() -> str:
     except Exception as e:
         logger.warning(f"Could not load from deployment file: {e}")
     
-    # Fallback to hardcoded address
-    return "0xc707d360BEc8048760F028f852cF1E244d155710"
+    # Fallback to mainnet deployed address
+    return "0x2E0DBaC1cE2356aca580F89AbAb94032d36E0579"
 
 
 async def main():
@@ -138,14 +138,29 @@ async def main():
     # Load configuration
     polymarket_api_key = os.getenv('POLYMARKET_API_KEY', '')
     polymarket_api_secret = os.getenv('POLYMARKET_API_SECRET', '')
-    arbitrum_rpc = os.getenv('ARBITRUM_RPC_URL', 'https://sepolia-rollup.arbitrum.io/rpc')
-    private_key = os.getenv('DEPLOYER_PRIVATE_KEY')
+    
+    # Determine network from environment variable
+    network = os.getenv('NETWORK', 'arbitrum')  # Default to mainnet
+    
+    # Set RPC URL based on network
+    if network == 'arbitrum':
+        default_rpc = 'https://arb1.arbitrum.io/rpc'
+        network_name = 'Arbitrum Mainnet'
+    elif network == 'arbitrumSepolia':
+        default_rpc = 'https://sepolia-rollup.arbitrum.io/rpc'
+        network_name = 'Arbitrum Sepolia'
+    else:
+        default_rpc = 'https://arb1.arbitrum.io/rpc'
+        network_name = network
+    
+    arbitrum_rpc = os.getenv('ARBITRUM_RPC_URL', default_rpc)
+    private_key = os.getenv('DEPLOYER_PRIVATE_KEY') or os.getenv('__RUNTIME_DEPLOYER_PRIVATE_KEY')
     
     # Get contract address
-    strategy_manager_address = get_strategy_manager_address()
+    strategy_manager_address = get_strategy_manager_address(network)
     
     logger.info("📝 Configuration:")
-    logger.info(f"  Network: Arbitrum Sepolia")
+    logger.info(f"  Network: {network_name}")
     logger.info(f"  RPC URL: {arbitrum_rpc}")
     logger.info(f"  StrategyManager: {strategy_manager_address}")
     logger.info(f"  Polymarket API: Public Gamma API (no auth needed)")
@@ -155,13 +170,13 @@ async def main():
     # Validate configuration
     if not private_key:
         logger.error("❌ DEPLOYER_PRIVATE_KEY not found in environment")
-        logger.error("   Please set DEPLOYER_PRIVATE_KEY in .env file")
+        logger.error("   Please set DEPLOYER_PRIVATE_KEY or __RUNTIME_DEPLOYER_PRIVATE_KEY in .env file")
         sys.exit(1)
     
     try:
         # Load contract ABI
         logger.info("📋 Loading StrategyManager ABI...")
-        strategy_manager_abi = load_contract_abi("StrategyManager")
+        strategy_manager_abi = load_contract_abi("StrategyManager", network)
         logger.info(f"   ✓ ABI loaded ({len(strategy_manager_abi)} functions)")
         logger.info("")
         
