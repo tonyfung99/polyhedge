@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, TrendingUp, Wallet } from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/utils";
 import { useAccount } from "wagmi";
 
@@ -31,8 +32,9 @@ export function Sidebar() {
   return (
     <div className="fixed left-0 top-0 bottom-0 w-60 border-r bg-muted/10">
       <nav className="flex flex-col h-full">
-        {/* Logo/Brand at top of sidebar */}
-        <div className="h-16 flex items-center px-6 border-b">
+        {/* Top section with wallet control and brand */}
+        <div className="px-4 py-4 border-b space-y-3">
+          <ConnectButton />
           <h1 className="text-2xl font-bold tracking-tight">POLYHEDGE</h1>
         </div>
 
