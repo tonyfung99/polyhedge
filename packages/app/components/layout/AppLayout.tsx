@@ -12,9 +12,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Top Bar */}
       <TopBar />
 
-      {/* Main Content */}
-      <main className="ml-60 mt-16 min-h-screen">
-        <div className="container mx-auto p-6 max-w-7xl">
+      {/* Main Content - positioned to account for fixed sidebar and topbar */}
+      <main className="pl-60 pt-16 min-h-screen">
+        <div className="p-8 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
