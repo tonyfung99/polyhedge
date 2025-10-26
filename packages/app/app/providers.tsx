@@ -3,18 +3,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import { arbitrum } from "wagmi/chains";
+import { arbitrumSepolia } from "wagmi/chains";
 import { http, createConfig } from "wagmi";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 
-// Configure wagmi
+// Configure wagmi for Arbitrum Sepolia testnet
 const config = getDefaultConfig({
   appName: "Polyhedge",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID",
-  chains: [arbitrum],
+  chains: [arbitrumSepolia],
   transports: {
-    [arbitrum.id]: http(),
+    [arbitrumSepolia.id]: http(
+      process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL ||
+      "https://sepolia-rollup.arbitrum.io/rpc"
+    ),
   },
   ssr: true,
 });

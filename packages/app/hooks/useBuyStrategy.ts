@@ -5,7 +5,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { arbitrum } from "wagmi/chains";
+import { arbitrumSepolia } from "wagmi/chains";
 import { parseUnits } from "viem";
 import { CONTRACTS, StrategyManagerABI } from "@/lib/contracts";
 
@@ -37,8 +37,8 @@ export function useBuyStrategy(strategyId: bigint) {
   const { address } = useAccount();
   const [pendingTx, setPendingTx] = useState<"approve" | "buy" | null>(null);
 
-  const strategyManagerAddress = CONTRACTS[arbitrum.id].StrategyManager;
-  const usdcAddress = CONTRACTS[arbitrum.id].USDC;
+  const strategyManagerAddress = CONTRACTS[arbitrumSepolia.id].StrategyManager;
+  const usdcAddress = CONTRACTS[arbitrumSepolia.id].USDC;
 
   // Check current USDC allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -46,7 +46,7 @@ export function useBuyStrategy(strategyId: bigint) {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: address ? [address, strategyManagerAddress] : undefined,
-    chainId: arbitrum.id,
+    chainId: arbitrumSepolia.id,
   });
 
   // Approve USDC spending
@@ -87,7 +87,7 @@ export function useBuyStrategy(strategyId: bigint) {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [strategyManagerAddress, amountWei],
-      chainId: arbitrum.id,
+      chainId: arbitrumSepolia.id,
     });
   };
 
@@ -103,7 +103,7 @@ export function useBuyStrategy(strategyId: bigint) {
       abi: StrategyManagerABI,
       functionName: "buyStrategy",
       args: [strategyId, amountWei],
-      chainId: arbitrum.id,
+      chainId: arbitrumSepolia.id,
     });
   };
 
