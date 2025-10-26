@@ -133,7 +133,7 @@ export function StrategyTable() {
                 <p>Possible issues:</p>
                 <ul className="list-disc list-inside">
                   <li>Wrong contract address</li>
-                  <li>Wrong network (should be Arbitrum Sepolia)</li>
+                  <li>Wrong network (should be Arbitrum Mainnet)</li>
                   <li>RPC connection issue</li>
                   <li>Contract not deployed</li>
                 </ul>

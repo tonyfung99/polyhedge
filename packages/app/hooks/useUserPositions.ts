@@ -1,5 +1,5 @@
 import { useAccount, useReadContracts } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { CONTRACTS, StrategyManagerABI } from "@/lib/contracts";
 import { useStrategies } from "./useStrategies";
 
@@ -34,11 +34,11 @@ export function useUserPositions() {
   const { data: positionsData, isLoading } = useReadContracts({
     contracts: address
       ? indices.map((index) => ({
-          address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
+          address: CONTRACTS[arbitrum.id].StrategyManager,
           abi: StrategyManagerABI,
           functionName: "userPositions",
           args: [address, BigInt(index)],
-          chainId: arbitrumSepolia.id,
+          chainId: arbitrum.id,
         }))
       : [],
   });

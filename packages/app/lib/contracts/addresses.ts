@@ -1,18 +1,23 @@
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`;
 
 /**
  * Contract addresses by chain ID
- * Configured for Arbitrum Sepolia testnet
+ * Configured for Arbitrum mainnet
  */
 export const CONTRACTS = {
-  [arbitrumSepolia.id]: {
-    // Deployed contract addresses on Arbitrum Sepolia
-    StrategyManager: "0xc707d360BEc8048760F028f852cF1E244d155710" as `0x${string}`,
-    HedgeExecutor: "0x67b059F3f838Ce25896635AcEd41a2ba5f175446" as `0x${string}`,
-    PolygonReceiver: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+  [arbitrum.id]: {
+    // Deployed contract addresses on Arbitrum mainnet
+    StrategyManager: (process.env.NEXT_PUBLIC_STRATEGY_MANAGER_ADDRESS ||
+      ZERO_ADDRESS) as `0x${string}`,
+    HedgeExecutor: (process.env.NEXT_PUBLIC_HEDGE_EXECUTOR_ADDRESS ||
+      ZERO_ADDRESS) as `0x${string}`,
+    PolygonReceiver: (process.env.NEXT_PUBLIC_POLYGON_RECEIVER_ADDRESS ||
+      ZERO_ADDRESS) as `0x${string}`,
 
-    // USDC on Arbitrum Sepolia testnet
-    USDC: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as `0x${string}`,
+    // USDC on Arbitrum mainnet
+    USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" as `0x${string}`,
   },
 } as const;
 
@@ -21,11 +26,17 @@ export const CONTRACTS = {
  */
 export function getContractAddress(
   chainId: number,
-  contractName: keyof typeof CONTRACTS[typeof arbitrumSepolia.id]
+  contractName: keyof typeof CONTRACTS[typeof arbitrum.id]
 ): `0x${string}` {
   const addresses = CONTRACTS[chainId as keyof typeof CONTRACTS];
   if (!addresses) {
     throw new Error(`No contracts configured for chain ${chainId}`);
   }
-  return addresses[contractName];
+  const address = addresses[contractName];
+  if (!address || address === ZERO_ADDRESS) {
+    throw new Error(
+      `Missing address for ${String(contractName)} on chain ${chainId}. Check your NEXT_PUBLIC_* environment variables.`
+    );
+  }
+  return address;
 }

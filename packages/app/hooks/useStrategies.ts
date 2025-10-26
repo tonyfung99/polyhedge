@@ -1,5 +1,5 @@
 import { useReadContract, useReadContracts } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { CONTRACTS, StrategyManagerABI } from "@/lib/contracts";
 
 export type Strategy = {
@@ -41,10 +41,10 @@ export function useStrategies() {
     isLoading: isLoadingCount,
     error: countError,
   } = useReadContract({
-    address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
+    address: CONTRACTS[arbitrum.id].StrategyManager,
     abi: StrategyManagerABI,
     functionName: "nextStrategyId",
-    chainId: arbitrumSepolia.id,
+    chainId: arbitrum.id,
   });
 
   // Calculate strategy IDs (from 1 to nextStrategyId-1)
@@ -59,11 +59,11 @@ export function useStrategies() {
     error: strategiesError,
   } = useReadContracts({
     contracts: strategyIds.map((id) => ({
-      address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
+      address: CONTRACTS[arbitrum.id].StrategyManager,
       abi: StrategyManagerABI,
       functionName: "strategies",
       args: [BigInt(id)],
-      chainId: arbitrumSepolia.id,
+      chainId: arbitrum.id,
     })),
   });
 

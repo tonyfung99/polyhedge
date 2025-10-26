@@ -3,17 +3,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { http, createConfig } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 
-const chains = [arbitrumSepolia];
+const chains = [arbitrum];
 const transports = {
-  [arbitrumSepolia.id]: http(
-    process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL ||
-      "https://sepolia-rollup.arbitrum.io/rpc"
+  [arbitrum.id]: http(
+    process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || "https://arb1.arbitrum.io/rpc"
   ),
 };
 
@@ -24,7 +23,7 @@ const hasWalletConnectProjectId = Boolean(
     walletConnectProjectId !== "your_project_id_here"
 );
 
-// Configure wagmi for Arbitrum Sepolia testnet
+// Configure wagmi for Arbitrum mainnet
 if (!hasWalletConnectProjectId) {
   console.warn(
     "WalletConnect project ID is missing. Falling back to injected wallets only."

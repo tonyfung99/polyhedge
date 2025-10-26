@@ -1,5 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrum } from "wagmi/chains";
 import { CONTRACTS, StrategyManagerABI } from "@/lib/contracts";
 
 export function useClaimStrategy() {
@@ -21,11 +21,11 @@ export function useClaimStrategy() {
 
   const handleClaim = async (strategyId: bigint) => {
     claim({
-      address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
+      address: CONTRACTS[arbitrum.id].StrategyManager,
       abi: StrategyManagerABI,
       functionName: "claimStrategy",
       args: [strategyId],
-      chainId: arbitrumSepolia.id,
+      chainId: arbitrum.id,
     });
   };
 
