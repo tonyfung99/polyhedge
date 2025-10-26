@@ -463,16 +463,29 @@ class SmartContractDeployer:
             Transaction hash
         """
         try:
-            # Convert dictionaries to tuples for contract call
-            # Polymarket orders: (marketId, isYes, notionalBps, maxPriceBps, priority)
+            # Convert dictionaries to tuples matching Solidity struct definitions
+            # PolymarketOrder: (marketId, isYes, amount, maxPriceBps)
+            # Note: Contract expects 'amount' not 'notionalBps', and no 'priority' field
             pm_orders_tuples = [
-                (order['marketId'], order['isYes'], order['notionalBps'], order['maxPriceBps'], order['priority'])
+                (
+                    order['marketId'],
+                    order['isYes'],
+                    order['notionalBps'],  # Maps to 'amount' in contract
+                    order['maxPriceBps']
+                )
                 for order in strategy_def['polymarketOrders']
             ]
             
-            # Hedge orders: (asset, isLong, amount, maxSlippageBps)
+            # HedgeOrder: (dex, asset, isLong, amount, maxSlippageBps)
+            # Note: Contract expects 'dex' as first field
             hedge_orders_tuples = [
-                (order['asset'], order['isLong'], order['amount'], order['maxSlippageBps'])
+                (
+                    'GMX',  # Default DEX
+                    order['asset'],
+                    order['isLong'],
+                    order['amount'],
+                    order['maxSlippageBps']
+                )
                 for order in strategy_def['hedgeOrders']
             ]
             
