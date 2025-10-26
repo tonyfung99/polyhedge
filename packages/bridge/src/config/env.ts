@@ -36,7 +36,12 @@ const appConfigSchema = z.object({
     polymarketHost: z.string().url().default('https://clob.polymarket.com'),
     polymarketChainId: z.coerce.number().int().default(137),
     // Vincent SDK configuration (preferred for hackathon)
-    useVincent: z.coerce.boolean().default(false),
+    useVincent: z.preprocess((val) => {
+        // Explicitly handle string "false" and "true"
+        if (val === 'false' || val === '0' || val === '') return false;
+        if (val === 'true' || val === '1') return true;
+        return Boolean(val);
+    }, z.boolean().default(false)),
     vincentAppId: z.string().optional(),
     litNetwork: z.enum(['datil', 'datil-dev', 'datil-test']).default('datil-dev'),
     // Fallback: direct private key (kept for backward compatibility)

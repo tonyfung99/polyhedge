@@ -3,13 +3,15 @@ import { PolymarketClient } from '../polymarket/client.js';
 import { createLogger } from '../utils/logger.js';
 import { ClosePositionRequest, SettlementResult, PolymarketPosition } from '../types.js';
 import { Contract, Wallet, JsonRpcProvider } from 'ethers';
+import { parseUnits } from 'viem';
 
 const log = createLogger('position-closer');
 
-// StrategyManager ABI (minimal - just what we need)
-const STRATEGY_MANAGER_ABI = [
-    'function settleStrategy(uint256 strategyId, uint256 payoutPerUSDC) external',
-    'function strategies(uint256) view returns (uint256 id, string name, uint256 feeBps, uint256 maturityTs, bool active, bool settled, uint256 payoutPerUSDC)',
+// HedgeExecutor ABI (minimal - just what we need)
+const HEDGE_EXECUTOR_ABI = [
+    'function closeHedgeOrder(uint256 strategyId, int256 realizedPnL) external',
+    'function getHedgeOrder(uint256 strategyId) view returns (uint256 strategyId, address user, string asset, bool isLong, uint256 amount, uint256 maxSlippageBps, bool executed, bytes32 gmxOrderKey)',
+    'function isOrderExecuted(uint256 strategyId) view returns (bool)',
 ];
 
 export class PositionCloser {
@@ -22,13 +24,13 @@ export class PositionCloser {
         this.config = config;
         this.polymarket = new PolymarketClient(config);
 
-        // Setup contract interaction
+        // Setup contract interaction on Arbitrum (where HedgeExecutor is deployed)
         const provider = new JsonRpcProvider(config.arbitrumRpcUrl);
-        this.wallet = new Wallet(config.polymarketPrivateKey, provider);
+        this.wallet = new Wallet(config.polymarketPrivateKey!, provider);
 
-        // We need the strategy manager address from config
-        const strategyManagerAddress = process.env.STRATEGY_MANAGER_ADDRESS || '';
-        this.contract = new Contract(strategyManagerAddress, STRATEGY_MANAGER_ABI, this.wallet);
+        // Get HedgeExecutor contract address from environment
+        const hedgeExecutorAddress = process.env.HEDGE_EXECUTOR_ADDRESS || process.env.STRATEGY_MANAGER_ADDRESS || '';
+        this.contract = new Contract(hedgeExecutorAddress, HEDGE_EXECUTOR_ABI, this.wallet);
     }
 
     async closePosition(request: ClosePositionRequest): Promise<SettlementResult> {
@@ -45,22 +47,20 @@ export class PositionCloser {
             throw new Error(`Strategy ${strategyId} not found`);
         }
 
-        // 2. Check if strategy is mature (can be closed)
-        const strategyData = await this.contract.strategies(strategyId);
-        const maturityTs = Number(strategyData[3]);
-        const settled = strategyData[5];
+        // 2. Check if hedge order exists and is executed
+        const hedgeOrder = await this.contract.getHedgeOrder(strategyId);
+        const isExecuted = await this.contract.isOrderExecuted(strategyId);
 
-        if (settled) {
-            throw new Error(`Strategy ${strategyId} already settled`);
+        if (!isExecuted) {
+            throw new Error(`Hedge order ${strategyId} not executed yet`);
         }
 
-        if (Date.now() / 1000 < maturityTs) {
-            log.warn('Closing position before maturity', {
-                strategyId: strategyId.toString(),
-                maturityTs,
-                currentTs: Math.floor(Date.now() / 1000),
-            });
-        }
+        log.info('Hedge order found', {
+            strategyId: strategyId.toString(),
+            asset: hedgeOrder.asset,
+            isLong: hedgeOrder.isLong,
+            amount: hedgeOrder.amount.toString(),
+        });
 
         // 3. Close all Polymarket positions (sell them)
         const positions: PolymarketPosition[] = [];
@@ -75,7 +75,7 @@ export class PositionCloser {
 
                 positions.push(position);
                 // Convert position payout to USDC (6 decimals)
-                totalPayout += BigInt(Math.floor(position.size * 1_000_000));
+                totalPayout += parseUnits(position.size.toString(), 6);
 
                 log.info('Closed Polymarket position', {
                     tokenId: order.marketId,
@@ -91,30 +91,34 @@ export class PositionCloser {
             }
         }
 
-        // 4. Calculate payout per USDC (6 decimals)
-        // This is simplified - in production you'd track total invested amount
-        // For now, assume we track it or calculate from events
-        const totalInvested = await this.getTotalInvested(strategyId);
-        const payoutPerUSDC = totalInvested > 0n
-            ? (totalPayout * 1_000_000n) / totalInvested
-            : 1_000_000n; // Default to 1:1 if no data
+        // 4. Calculate realized PnL from Polymarket positions
+        // PnL = Total payout - Initial investment
+        const initialInvestment = BigInt(hedgeOrder.amount.toString());
+        const realizedPnL = BigInt(totalPayout) - initialInvestment;
 
-        log.info('Calculated settlement', {
+        log.info('Calculated PnL', {
             strategyId: strategyId.toString(),
             totalPayout: totalPayout.toString(),
-            totalInvested: totalInvested.toString(),
-            payoutPerUSDC: payoutPerUSDC.toString(),
+            initialInvestment: initialInvestment.toString(),
+            realizedPnL: realizedPnL.toString(),
         });
 
-        // 5. Call contract to settle
-        const tx = await this.contract.settleStrategy(strategyId, payoutPerUSDC);
+        // 5. Call HedgeExecutor to close the hedge order
+        // Convert to int256 for Solidity
+        const tx = await this.contract.closeHedgeOrder(strategyId, realizedPnL);
         const receipt = await tx.wait();
 
-        log.info('Strategy settled on-chain', {
+        log.info('Hedge order closed on-chain', {
             strategyId: strategyId.toString(),
             transactionHash: receipt.hash,
-            payoutPerUSDC: payoutPerUSDC.toString(),
+            realizedPnL: realizedPnL.toString(),
         });
+
+        // For compatibility, calculate payoutPerUSDC
+        const totalInvested = await this.getTotalInvested(strategyId);
+        const payoutPerUSDC = totalInvested > 0n
+            ? (totalPayout * parseUnits('1', 6)) / totalInvested
+            : parseUnits('1', 6); // 1.0 = 100% payout
 
         return {
             strategyId,
@@ -140,7 +144,7 @@ export class PositionCloser {
         log.warn('Using placeholder total invested amount', {
             strategyId: strategyId.toString(),
         });
-        return 1_000_000n * 1_000_000n; // 1M USDC
+        return parseUnits('1000000', 6); // 1M USDC
     }
 }
 
