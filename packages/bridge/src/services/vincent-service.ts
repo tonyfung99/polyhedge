@@ -1,6 +1,8 @@
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
+import { ethers } from 'ethers';
 import { createLogger } from '../utils/logger.js';
 import { AppConfig } from '../config/env.js';
+import { executePolymarketBet, PolymarketBetParams } from '../abilities/polymarket-bet-ability.js';
 
 const log = createLogger('vincent-service');
 
@@ -141,9 +143,10 @@ export class VincentService {
     }
 
     /**
-     * Execute a Polymarket trade using Vincent Ability
+     * Execute a Polymarket trade using custom Vincent Ability
      * 
-     * This uses the @bridgewager/vincent-ability-polymarket-bet ability
+     * This uses our custom-built @polyhedge/vincent-ability-polymarket-bet
+     * which executes trades using PKP signing without exposing private keys.
      * 
      * @param params - Trade parameters
      */
@@ -157,52 +160,61 @@ export class VincentService {
             throw new Error('Admin not delegated or delegation expired. Please authenticate via /api/admin/auth');
         }
 
-        log.info('Executing Polymarket trade via Vincent', {
+        if (!this.litNodeClient) {
+            throw new Error('Lit Protocol client not initialized');
+        }
+
+        log.info('Executing Polymarket trade via custom Vincent Ability with PKP', {
             tokenId: params.tokenId,
             side: params.side,
             amount: params.amount,
+            pkpAddress: this.adminState!.pkpEthAddress,
         });
 
-        // Lit Action code that uses the Polymarket betting ability
-        // In production, this would import and use @bridgewager/vincent-ability-polymarket-bet
-        const litActionCode = `
-        (async () => {
-            // Import the Polymarket betting ability
-            const { executePolymarketBet } = await import('@bridgewager/vincent-ability-polymarket-bet');
+        try {
+            // Import PKPSigner for ability execution
+            const { PKPSigner } = await import('./pkp-signer.js');
             
-            // Execute the trade
-            const result = await executePolymarketBet({
-                tokenId: tokenId,
-                side: side,
-                amount: amount,
-                price: price,
-                rpcUrl: '${this.config.polygonRpcUrl}',
-                chainId: ${this.config.polymarketChainId},
+            // Create PKP signer
+            const provider = new ethers.JsonRpcProvider(this.config.polygonRpcUrl);
+            const pkpSigner = new PKPSigner(
+                this.litNodeClient,
+                this.adminState!.pkpPublicKey,
+                this.adminState!.pkpEthAddress,
+                this.adminState!.sessionSigs,
+                provider,
+            );
+
+            // Prepare ability parameters
+            const abilityParams: PolymarketBetParams = {
+                tokenId: params.tokenId,
+                side: params.side,
+                amount: params.amount,
+                price: params.price,
+                clobHost: this.config.polymarketHost,
+                chainId: this.config.polymarketChainId,
+                polygonRpcUrl: this.config.polygonRpcUrl,
+                signatureType: this.config.polymarketSignatureType,
+                funderAddress: this.config.polymarketFunderAddress,
+            };
+
+            // Execute the ability
+            const result = await executePolymarketBet(abilityParams, pkpSigner);
+
+            log.info('Polymarket trade executed successfully via Vincent Ability', {
+                tokenId: params.tokenId,
+                orderId: result.orderId,
+                status: result.status,
             });
-            
-            // Sign the transaction with PKP
-            const signature = await LitActions.signEcdsa({
-                toSign: result.unsignedTx,
-                publicKey: publicKey,
-                sigName: "polymarketTrade"
+
+            return result;
+        } catch (error) {
+            log.error('Failed to execute Polymarket trade via Vincent Ability', {
+                error: (error as Error).message,
+                tokenId: params.tokenId,
             });
-            
-            Lit.Actions.setResponse({ response: JSON.stringify({ signature, result }) });
-        })();
-        `;
-
-        const response = await this.executeLitAction(litActionCode, {
-            tokenId: params.tokenId,
-            side: params.side,
-            amount: params.amount,
-            price: params.price,
-        });
-
-        log.info('Polymarket trade executed successfully via Vincent', {
-            tokenId: params.tokenId,
-        });
-
-        return response;
+            throw error;
+        }
     }
 
     /**

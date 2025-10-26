@@ -15,11 +15,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@bridgewager/vincent-ability-polymarket-bet": "^1.0.0",
     "@envio-dev/hypersync-client": "^0.6.6",
     "@fastify/cors": "^11.1.0",
+    "@lit-protocol/auth-helpers": "^6.4.0",
+    "@lit-protocol/constants": "^6.4.0",
     "@lit-protocol/lit-node-client": "^6.4.0",
-    "@lit-protocol/vincent-sdk": "^1.0.0",
     "@polymarket/clob-client": "^4.22.7",
     "dotenv": "^16.4.5",
     "ethers": "^6.10.0",

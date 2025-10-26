@@ -78,12 +78,19 @@ export class PolymarketClient {
                     });
 
                     if (this.useVincent) {
-                        // Execute via Vincent service using admin's delegated PKP
-                        await this.vincentService!.executePolymarketTrade({
+                        // Execute trade via custom Vincent Ability with PKP signing
+                        // This uses our @polyhedge/vincent-ability-polymarket-bet
+                        const result = await this.vincentService!.executePolymarketTrade({
                             tokenId: intent.tokenId,
                             side: intent.side,
                             amount,
-                            price: intent.limitPriceBps / 10000, // Convert BPS to decimal
+                            price: intent.limitPriceBps / 10000,
+                        });
+                        
+                        log.info('Trade executed via Vincent Ability', {
+                            success: result.success,
+                            orderId: result.orderId,
+                            status: result.status,
                         });
                     } else {
                         // Execute directly with private key

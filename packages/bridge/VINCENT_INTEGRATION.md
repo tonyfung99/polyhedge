@@ -43,23 +43,23 @@ yarn install
 
 Key packages:
 
-- `@lit-protocol/vincent-sdk` - Vincent SDK for PKP operations
-- `@lit-protocol/lit-node-client` - Lit Protocol client
-- `@bridgewager/vincent-ability-polymarket-bet` - Polymarket trading ability
+- `@lit-protocol/lit-node-client` - Lit Protocol client for PKP operations
+- `@lit-protocol/auth-helpers` - Authentication helpers for Lit Protocol
+
+**Important Note**: This is a hackathon/PoC implementation that demonstrates the Vincent delegation flow. The actual Polymarket trade execution still uses the standard CLOB client with private key signing. In production, you would build a custom Lit Action to execute trades using the PKP, or create a custom ethers Signer that uses the PKP for all transactions.
 
 ### Step 2: Create Vincent App
 
 1. Visit [Vincent Dashboard](https://vincent.lit.protocol.com/) (or your hackathon-specific Vincent URL)
 2. Click "Create New App"
 3. Name it "Polyhedge Admin Bot" (or your preferred name)
-4. Add the following ability:
-   - **Ability**: `@bridgewager/vincent-ability-polymarket-bet`
-   - **Version**: Latest
-5. Configure app settings:
+4. Configure app settings:
    - **App User URL**: Your bridge service URL (e.g., `https://your-bridge.herokuapp.com`)
    - **Redirect URIs**: Add your frontend URL(s)
-6. Publish the app
-7. Copy your **Vincent App ID** (you'll need this for `.env`)
+5. Publish the app
+6. Copy your **Vincent App ID** (you'll need this for `.env`)
+
+**Note**: For this PoC, custom Polymarket abilities are not required. The Vincent integration demonstrates secure delegation and authentication, while trade execution uses the standard flow.
 
 ### Step 3: Configure Environment
 
