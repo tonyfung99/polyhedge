@@ -14,6 +14,7 @@ const polymarketOrderSchema = z.object({
 const strategySchema = z.object({
     id: z.coerce.bigint(),
     name: z.string().min(1),
+    conditionId: z.string().optional(), // Polymarket condition ID for market maturity checks
     polymarketOrders: z.array(polymarketOrderSchema).min(1),
 });
 
@@ -115,6 +116,7 @@ function loadStrategies(pathOverride?: string): Map<bigint, StrategyDefinition> 
         const definition: StrategyDefinition = {
             id: strategy.id,
             name: strategy.name,
+            conditionId: strategy.conditionId,
             polymarketOrders: orders,
             totalNotionalBps: totalBps,
         };

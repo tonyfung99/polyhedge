@@ -1,0 +1,62 @@
+{
+  "strategies": [
+    {
+      "id": 1,
+      "name": "Example: BTC Price Hedge - 110k vs 150k",
+      "conditionId": "REPLACE_WITH_CONDITION_ID_FROM_NETWORK_TAB",
+      "_conditionIdNote": "This is the hex format (0x...) market ID from /markets/ or /data/trades?market= endpoints",
+      "polymarketOrders": [
+        {
+          "marketId": "REPLACE_WITH_BTC_110K_YES_TOKEN_ID",
+          "outcome": "YES",
+          "priority": 1,
+          "notionalBps": 5000,
+          "maxPriceBps": 7500,
+          "_comment": "50% of allocation, max price 0.75 (75%)"
+        },
+        {
+          "marketId": "REPLACE_WITH_BTC_150K_NO_TOKEN_ID",
+          "outcome": "NO",
+          "priority": 2,
+          "notionalBps": 5000,
+          "maxPriceBps": 6000,
+          "_comment": "50% of allocation, max price 0.60 (60%)"
+        }
+      ],
+      "_instructions": [
+        "1. Go to https://polymarket.com",
+        "2. Find 'Will BTC be above $110k by [date]?' market",
+        "3. Open DevTools (F12) → Network tab",
+        "4. Click on the market",
+        "5. Look for API calls to clob.polymarket.com",
+        "6. Find the 'token_id' in responses",
+        "7. Copy YES and NO token IDs",
+        "8. Validate: npx tsx scripts/validate-market-ids.ts <token_id>",
+        "9. Replace REPLACE_WITH_* above with real token IDs"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Example: Single Market Strategy",
+      "polymarketOrders": [
+        {
+          "marketId": "REPLACE_WITH_MARKET_TOKEN_ID",
+          "outcome": "YES",
+          "priority": 1,
+          "notionalBps": 10000,
+          "maxPriceBps": 8000,
+          "_comment": "100% of allocation, max price 0.80 (80%)"
+        }
+      ]
+    }
+  ],
+  "_documentation": {
+    "notionalBps": "Basis points (1/100 of 1%). 10000 = 100%, 5000 = 50%, 2500 = 25%",
+    "maxPriceBps": "Maximum price in basis points. 7500 = 0.75 = 75%, 6000 = 0.60 = 60%",
+    "priority": "Order execution priority. Lower number = execute first",
+    "outcome": "YES or NO - which side of the market to bet on",
+    "marketId": "Polymarket token ID (70+ digit number)"
+  },
+  "_howToFindMarketIds": "See scripts/README.md for detailed instructions"
+}
+

@@ -14,6 +14,7 @@ export interface StrategyPolymarketOrder {
 export interface StrategyDefinition {
     id: bigint;
     name: string;
+    conditionId?: string; // Polymarket condition ID (hex format) for market maturity checks
     polymarketOrders: StrategyPolymarketOrder[];
     totalNotionalBps: number;
 }

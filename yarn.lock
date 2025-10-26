@@ -5007,6 +5007,7 @@ __metadata:
     dotenv: ^16.4.5
     ethers: ^6.10.0
     fastify: ^5.6.1
+    siwe: ^3.0.0
     ts-node: ^10.9.2
     tsx: ^4.20.6
     typescript: ^5.4.5
@@ -5894,6 +5895,16 @@ __metadata:
     uri-js: ^4.4.1
     valid-url: ^1.0.9
   checksum: feb0806ed3da945192245e6ac20108a1e4ef79184a04967bf251307e7315ca824862b016bd8e2100a739e8ee76ef768f088314601adbf3e847bb7692fcb33ac0
+  languageName: node
+  linkType: hard
+
+"@spruceid/siwe-parser@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@spruceid/siwe-parser@npm:3.0.0"
+  dependencies:
+    "@noble/hashes": ^1.1.2
+    apg-js: ^4.4.0
+  checksum: 6f3577ec3e83d3f37325ef3d889c79e8fdb35533555b4c7975d76f3ae7ca2a48680f22a2c0213210197acfa29c676967da5525a4b149f6c19a7dfe10a46feeec
   languageName: node
   linkType: hard
 
@@ -8665,7 +8676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"apg-js@npm:^4.3.0":
+"apg-js@npm:^4.3.0, apg-js@npm:^4.4.0":
   version: 4.4.0
   resolution: "apg-js@npm:4.4.0"
   checksum: 81f9753ef8ec102d6ec7ceddd57a5aee2e7e238ac5877165f9ac6cb5cb8ec73ec5070e040d3af04822bc0de754699b0199c39159ed0d8453d6bb99812a326deb
@@ -19835,6 +19846,18 @@ __metadata:
   peerDependencies:
     ethers: ^5.6.8 || ^6.0.8
   checksum: f49356ceaf2dff256cb5379a41cd75461dcd67cc478e0f3338943aa094d4d92d35b8295e6a987afbd16fdb6c870ffb4d43adf9ff79085aaddab58084df8f188c
+  languageName: node
+  linkType: hard
+
+"siwe@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "siwe@npm:3.0.0"
+  dependencies:
+    "@spruceid/siwe-parser": ^3.0.0
+    "@stablelib/random": ^1.0.1
+  peerDependencies:
+    ethers: ^5.6.8 || ^6.0.8
+  checksum: d4c87e89f27f1ca9d27a4127de208c99a794f68735e5e1be478ba51d9be6cb9f130156ec4e80e5273b0dcb890cb6870d5afa2a8c64496b10e1e30b7e80d8cb42
   languageName: node
   linkType: hard
 

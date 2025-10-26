@@ -47,12 +47,21 @@ export class MarketMaturityMonitor {
      */
     private initializeTrackedMarkets(): void {
         for (const [strategyId, strategy] of this.config.strategies.entries()) {
-            for (const order of strategy.polymarketOrders) {
-                if (!this.trackedMarkets.has(order.marketId)) {
-                    // We'll fetch the actual end date from Polymarket API
-                    this.trackedMarkets.set(order.marketId, {
+            // Use conditionId if available, otherwise fall back to first order's marketId (token ID)
+            const marketId = strategy.conditionId || strategy.polymarketOrders[0]?.marketId;
+            
+            if (marketId && !this.trackedMarkets.has(marketId)) {
+                // We'll fetch the actual end date from Polymarket API
+                this.trackedMarkets.set(marketId, {
+                    strategyId,
+                    endDate: new Date(0), // Placeholder, will be updated on first poll
+                });
+                
+                if (!strategy.conditionId) {
+                    log.warn('Strategy missing conditionId, using token ID as fallback', {
                         strategyId,
-                        endDate: new Date(0), // Placeholder, will be updated on first poll
+                        strategyName: strategy.name,
+                        marketId,
                     });
                 }
             }
@@ -160,37 +169,72 @@ export class MarketMaturityMonitor {
     }
 
     /**
-     * Fetch market information from Polymarket
-     * TODO: Replace with actual Polymarket API call
+     * Fetch market information from Polymarket CLOB API
+     * Based on: packages/python/scanner/bridge_polymarket_client.py
      */
     private async fetchMarketInfo(marketId: string): Promise<MarketInfo | null> {
         try {
-            // TODO: Implement actual Polymarket API call
-            // For now, using placeholder implementation
-            
-            // The Polymarket CLOB API should have an endpoint like:
-            // GET https://clob.polymarket.com/markets/{marketId}
-            // or GET https://clob.polymarket.com/markets?id={marketId}
-            
-            // Example implementation (replace with actual API):
-            // const response = await fetch(`${this.config.polymarketHost}/markets/${marketId}`);
-            // const data = await response.json();
-            // return {
-            //     marketId: data.id,
-            //     endDate: data.end_date_iso,
-            //     active: data.active,
-            //     closed: data.closed,
-            // };
-
             log.debug('Fetching market info', { marketId });
 
-            // Placeholder: Return null to indicate we need real implementation
-            // In production, this should query the actual Polymarket API
-            return null;
+            // Query Polymarket CLOB API for market data
+            // Reference: https://docs.polymarket.com/#get-market
+            const url = `${this.config.polymarketHost}/markets/${marketId}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                log.warn('Failed to fetch market info from Polymarket', {
+                    marketId,
+                    status: response.status,
+                    statusText: response.statusText,
+                });
+                return null;
+            }
+
+            const data = await response.json();
+            
+            // Parse market data
+            // The API returns market info with endTime (unix timestamp), active, closed status
+            const endTime = data.endTime || data.end_time || data.end_date_iso;
+            
+            // Convert endTime to ISO string
+            let endDate: string;
+            if (typeof endTime === 'number') {
+                // Unix timestamp (seconds)
+                endDate = new Date(endTime * 1000).toISOString();
+            } else if (typeof endTime === 'string') {
+                // Already ISO string
+                endDate = endTime;
+            } else {
+                log.warn('Market endTime not found', { marketId, data });
+                return null;
+            }
+
+            const marketInfo: MarketInfo = {
+                marketId: data.id || data.tokenId || marketId,
+                endDate: endDate,
+                active: data.active !== undefined ? data.active : true,
+                closed: data.closed !== undefined ? data.closed : false,
+            };
+
+            log.debug('Market info fetched successfully', {
+                marketId,
+                endDate: marketInfo.endDate,
+                active: marketInfo.active,
+                closed: marketInfo.closed,
+            });
+
+            return marketInfo;
         } catch (error) {
             log.error('Failed to fetch market info from Polymarket', {
                 marketId,
                 error: (error as Error).message,
+                stack: (error as Error).stack,
             });
             return null;
         }
