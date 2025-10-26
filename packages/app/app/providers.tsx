@@ -5,22 +5,51 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { arbitrumSepolia } from "wagmi/chains";
 import { http, createConfig } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 
-// Configure wagmi for Arbitrum Sepolia testnet
-const config = getDefaultConfig({
-  appName: "Polyhedge",
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID",
-  chains: [arbitrumSepolia],
-  transports: {
-    [arbitrumSepolia.id]: http(
-      process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL ||
+const chains = [arbitrumSepolia];
+const transports = {
+  [arbitrumSepolia.id]: http(
+    process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL ||
       "https://sepolia-rollup.arbitrum.io/rpc"
-    ),
-  },
-  ssr: true,
-});
+  ),
+};
+
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+const hasWalletConnectProjectId = Boolean(
+  walletConnectProjectId &&
+    walletConnectProjectId !== "YOUR_PROJECT_ID" &&
+    walletConnectProjectId !== "your_project_id_here"
+);
+
+// Configure wagmi for Arbitrum Sepolia testnet
+if (!hasWalletConnectProjectId) {
+  console.warn(
+    "WalletConnect project ID is missing. Falling back to injected wallets only."
+  );
+}
+
+const config = hasWalletConnectProjectId
+  ? getDefaultConfig({
+      appName: "Polyhedge",
+      projectId: walletConnectProjectId,
+      chains,
+      transports,
+      ssr: true,
+    })
+  : createConfig({
+      appName: "Polyhedge",
+      chains,
+      transports,
+      connectors: [
+        injected({
+          shimDisconnect: true,
+        }),
+      ],
+      ssr: true,
+    });
 
 // Create query client
 const queryClient = new QueryClient();
