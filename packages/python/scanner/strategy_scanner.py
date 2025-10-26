@@ -480,11 +480,15 @@ class SmartContractDeployer:
             
             # Sign and send
             signed_tx = self.w3.eth.account.sign_transaction(tx_dict, self.account.key)
-            # Handle both old and new web3.py API
-            try:
-                raw_tx = signed_tx['rawTransaction']
-            except (TypeError, KeyError):
+            # Handle different web3.py/eth-account versions
+            # Modern versions use raw_transaction (underscore), older used rawTransaction (camelCase)
+            if hasattr(signed_tx, 'raw_transaction'):
+                raw_tx = signed_tx.raw_transaction
+            elif hasattr(signed_tx, 'rawTransaction'):
                 raw_tx = signed_tx.rawTransaction
+            else:
+                # Fallback to dict access
+                raw_tx = signed_tx['raw_transaction'] if 'raw_transaction' in signed_tx else signed_tx['rawTransaction']
             tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             
             self.logger.info(f"Deployed strategy: {tx_hash.hex()}")
