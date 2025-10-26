@@ -35,28 +35,24 @@ load_dotenv()
 
 
 def load_contract_abi(contract_name: str) -> dict:
-    """Load contract ABI from typechain-types"""
+    """Load contract ABI from deployment JSON file"""
     try:
-        # Path to typechain artifacts
-        typechain_path = Path(__file__).parent.parent.parent / "hardhat" / "typechain-types"
+        # Path to hardhat deployments
+        deployment_path = Path(__file__).parent.parent.parent / "hardhat" / "deployments" / "arbitrumSepolia"
         
-        # Find the ABI file
-        abi_file = None
-        for root, dirs, files in os.walk(typechain_path):
-            for file in files:
-                if contract_name in file and file.endswith('.ts'):
-                    abi_file = os.path.join(root, file)
-                    break
+        # Load from deployment JSON
+        deployment_file = deployment_path / f"{contract_name}.json"
         
-        if not abi_file:
-            logger.warning(f"ABI file not found for {contract_name}, using fallback")
+        if deployment_file.exists():
+            with open(deployment_file, 'r') as f:
+                deployment_data = json.load(f)
+                abi = deployment_data.get('abi', [])
+                logger.info(f"Loaded {contract_name} ABI from deployment file: {deployment_file}")
+                logger.info(f"   ✓ ABI loaded ({len(abi)} items)")
+                return abi
+        else:
+            logger.warning(f"Deployment file not found: {deployment_file}")
             return _get_fallback_abi(contract_name)
-        
-        # Parse ABI from typechain file (simplified - just get the exported ABI)
-        with open(abi_file, 'r') as f:
-            content = f.read()
-            logger.info(f"Loaded {contract_name} ABI from {abi_file}")
-            return _extract_abi_from_typechain(content)
     
     except Exception as e:
         logger.error(f"Error loading ABI: {e}")
@@ -103,12 +99,6 @@ def _get_fallback_abi(contract_name: str) -> dict:
             }
         ]
     return []
-
-
-def _extract_abi_from_typechain(content: str) -> dict:
-    """Extract ABI from typechain generated file"""
-    # This is a simplified version - in production, you'd properly parse the file
-    return _get_fallback_abi("StrategyManager")
 
 
 def get_strategy_manager_address() -> str:
