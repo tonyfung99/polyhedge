@@ -33,7 +33,7 @@ export const polymarketBetAbility = {
   abilityParamsSchema, // Input validation
   precheck, // Pre-execution checks
   execute, // Main trading logic
-  version: '1.0.0',
+  version: "1.0.0",
 };
 ```
 

@@ -45,7 +45,7 @@ export const polymarketBetAbility = {
   executeSuccessSchema, // Execution result schema
   executeFailSchema, // Execution error schema
   execute, // Main execution logic
-  version: '1.0.0',
+  version: "1.0.0",
 };
 ```
 

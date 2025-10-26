@@ -132,7 +132,7 @@ export const polymarketBetAbility = {
   abilityParamsSchema, // Zod validation
   precheck, // Parameter validation
   execute, // Trade execution
-  version: '1.0.0',
+  version: "1.0.0",
 };
 ```
 
