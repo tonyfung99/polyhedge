@@ -24,12 +24,14 @@ ETHERSCAN_V2_API_KEY=your_arbiscan_api_key
 ### 2. Get API Keys
 
 **Alchemy API Key:**
+
 1. Sign up at https://www.alchemy.com/
 2. Create a new app
 3. Select "Arbitrum" network
 4. Copy the API key
 
 **Arbiscan API Key:**
+
 1. Sign up at https://arbiscan.io/
 2. Go to https://arbiscan.io/myapikey
 3. Create a new API key
@@ -40,17 +42,20 @@ ETHERSCAN_V2_API_KEY=your_arbiscan_api_key
 Your deployer address needs ETH on Arbitrum mainnet for gas fees.
 
 **Get your deployer address:**
+
 ```bash
 cd packages/hardhat
 yarn hardhat run scripts/listAccount.ts --network arbitrum
 ```
 
 **Fund with ETH:**
+
 - Bridge ETH from Ethereum mainnet: https://bridge.arbitrum.io/
 - Or buy directly on Arbitrum via exchanges
 - Recommended: **0.05 ETH** for deployment + verification
 
 **Estimated Gas Costs:**
+
 - HedgeExecutor deployment: ~0.01 ETH
 - StrategyManager deployment: ~0.01 ETH
 - Total: ~0.02 ETH + buffer
@@ -72,12 +77,14 @@ GMX Router: 0x549352201EB5eba6cdc235D127cAe56d2145DAAF
 ```
 
 **Verify these are correct:**
+
 - USDC: https://arbiscan.io/token/0xaf88d065e77c8cC2239327C5EDb3A432268e5831
 - GMX Docs: https://docs.gmx.io/
 
 ### ✅ Deployment Order
 
 Contracts deploy in this order:
+
 1. **HedgeExecutor** (independent)
 2. **StrategyManager** (depends on HedgeExecutor)
 
@@ -112,6 +119,7 @@ yarn compile
 ```
 
 **Expected output:**
+
 ```
 Compiled 15 Solidity files successfully
 ```
@@ -132,6 +140,7 @@ yarn hardhat deploy --network arbitrum
 ```
 
 **Expected output:**
+
 ```
 Deploying HedgeExecutor on arbitrum
 GMX ExchangeRouter: 0x7C68C7E1CDBdD30B08C1c5433f385E814fAc2b9E
@@ -146,6 +155,7 @@ deploying "StrategyManager" (tx: 0xdef456...)
 ```
 
 **Important:**
+
 - Save the transaction hashes
 - Save the deployed contract addresses
 - Wait for confirmations before proceeding
@@ -159,6 +169,7 @@ ls -la deployments/arbitrum/
 ```
 
 **You should see:**
+
 ```
 HedgeExecutor.json
 StrategyManager.json
@@ -198,6 +209,7 @@ yarn hardhat verify --network arbitrum STRATEGY_MANAGER_ADDRESS \
 Replace `HEDGE_EXECUTOR_ADDRESS` and `STRATEGY_MANAGER_ADDRESS` with your actual deployed addresses.
 
 **Expected output:**
+
 ```
 Successfully submitted source code for contract
 contracts/HedgeExecutor.sol:HedgeExecutor at 0x...
@@ -224,12 +236,14 @@ If automatic verification fails:
 7. Add constructor arguments (ABI-encoded)
 
 **To get flattened source:**
+
 ```bash
 yarn hardhat flatten contracts/HedgeExecutor.sol > HedgeExecutor_flat.sol
 yarn hardhat flatten contracts/StrategyManager.sol > StrategyManager_flat.sol
 ```
 
 **To get constructor arguments:**
+
 ```bash
 # HedgeExecutor constructor: (exchangeRouter, router, usdc)
 # StrategyManager constructor: (usdc, hedgeExecutor)
@@ -240,17 +254,21 @@ yarn hardhat flatten contracts/StrategyManager.sol > StrategyManager_flat.sol
 ### Troubleshooting Verification
 
 **Error: "Already Verified"**
+
 - Contract is already verified, no action needed
 
 **Error: "Invalid API Key"**
+
 - Check your `ETHERSCAN_V2_API_KEY` in `.env`
 - Verify API key is active on Arbiscan
 
 **Error: "Constructor arguments mismatch"**
+
 - Ensure constructor args match deployment
 - Check deployment JSON files for exact args used
 
 **Error: "Bytecode does not match"**
+
 - Ensure compiler version matches (0.8.20)
 - Ensure optimization settings match (200 runs)
 - Recompile with `yarn clean && yarn compile`
@@ -304,6 +322,7 @@ python run_strategy_scanner.py
 ```
 
 This will:
+
 - Scan real Polymarket markets
 - Calculate real arbitrage opportunities
 - Deploy strategies to mainnet contract
@@ -315,10 +334,12 @@ This will:
 Monitor your deployed contracts:
 
 **Arbiscan Dashboard:**
+
 - HedgeExecutor: `https://arbiscan.io/address/HEDGE_EXECUTOR_ADDRESS`
 - StrategyManager: `https://arbiscan.io/address/STRATEGY_MANAGER_ADDRESS`
 
 **Monitor Events:**
+
 ```bash
 # Watch for StrategyCreated events
 yarn hardhat run scripts/monitorEvents.ts --network arbitrum
@@ -343,6 +364,7 @@ yarn hardhat run scripts/monitorEvents.ts --network arbitrum
 ### Private Key Management
 
 **DO:**
+
 - ✅ Use hardware wallet for mainnet deployments
 - ✅ Store private keys in secure vault
 - ✅ Use separate deployer account (not main wallet)
@@ -350,6 +372,7 @@ yarn hardhat run scripts/monitorEvents.ts --network arbitrum
 - ✅ Have secure backup of keys
 
 **DON'T:**
+
 - ❌ Commit `.env` file to git
 - ❌ Share private keys
 - ❌ Use same key for testnet and mainnet
@@ -359,6 +382,7 @@ yarn hardhat run scripts/monitorEvents.ts --network arbitrum
 ### Access Control
 
 After deployment, consider:
+
 1. Transfer contract ownership to multi-sig
 2. Implement timelock for critical functions
 3. Set up role-based access control
@@ -371,6 +395,7 @@ After deployment, consider:
 Print this checklist and check off each item:
 
 ### Pre-Deployment
+
 - [ ] All contracts audited
 - [ ] Testnet deployment successful
 - [ ] All addresses verified (USDC, GMX)
@@ -381,6 +406,7 @@ Print this checklist and check off each item:
 - [ ] Team notified of deployment
 
 ### Deployment
+
 - [ ] Clean build completed
 - [ ] Contracts compiled successfully
 - [ ] Dry run executed
@@ -391,6 +417,7 @@ Print this checklist and check off each item:
 - [ ] Deployment artifacts saved
 
 ### Verification
+
 - [ ] HedgeExecutor verified on Arbiscan
 - [ ] StrategyManager verified on Arbiscan
 - [ ] Contract source code visible
@@ -398,6 +425,7 @@ Print this checklist and check off each item:
 - [ ] License type set
 
 ### Post-Deployment
+
 - [ ] Test transactions executed
 - [ ] Python scanner configured
 - [ ] Frontend updated
@@ -440,19 +468,23 @@ Print this checklist and check off each item:
 ## 📞 Support & Resources
 
 **Documentation:**
+
 - GMX Docs: https://docs.gmx.io/
 - Arbitrum Docs: https://docs.arbitrum.io/
 - Hardhat Docs: https://hardhat.org/
 
 **Block Explorers:**
+
 - Arbiscan: https://arbiscan.io/
 - Arbitrum Bridge: https://bridge.arbitrum.io/
 
 **RPC Endpoints:**
+
 - Alchemy: https://dashboard.alchemy.com/
 - Arbitrum Public: https://arbitrum.io/
 
 **Community:**
+
 - GMX Discord: https://discord.gg/gmx
 - Arbitrum Discord: https://discord.gg/arbitrum
 
@@ -499,4 +531,3 @@ External Contracts:
 ---
 
 Good luck with your mainnet deployment! 🚀
-
