@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,9 +10,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStrategies, type Strategy } from "@/hooks/useStrategies";
-import { formatUnits } from "viem";
+import { BuyStrategyDialog } from "./BuyStrategyDialog";
+import { ShoppingCart } from "lucide-react";
 
 function formatTimestamp(timestamp: bigint): string {
   const date = new Date(Number(timestamp) * 1000);
@@ -39,7 +42,13 @@ function getStrategyStatus(strategy: Strategy): {
   return { label: "Active", variant: "default" };
 }
 
-function StrategyRow({ strategy }: { strategy: Strategy }) {
+function StrategyRow({
+  strategy,
+  onBuyClick,
+}: {
+  strategy: Strategy;
+  onBuyClick: (strategy: Strategy) => void;
+}) {
   const status = getStrategyStatus(strategy);
   const profitPercent = (Number(strategy.details.expectedProfitBps) / 100).toFixed(
     2
@@ -58,6 +67,8 @@ function StrategyRow({ strategy }: { strategy: Strategy }) {
     positionType = "Hedge Only";
   }
 
+  const canPurchase = strategy.active && !strategy.settled;
+
   return (
     <TableRow>
       <TableCell className="font-medium">#{strategy.id.toString()}</TableCell>
@@ -69,12 +80,23 @@ function StrategyRow({ strategy }: { strategy: Strategy }) {
       <TableCell>
         <Badge variant={status.variant}>{status.label}</Badge>
       </TableCell>
+      <TableCell>
+        <Button
+          size="sm"
+          onClick={() => onBuyClick(strategy)}
+          disabled={!canPurchase}
+        >
+          <ShoppingCart className="mr-2 h-4 w-4" />
+          Buy
+        </Button>
+      </TableCell>
     </TableRow>
   );
 }
 
 export function StrategyTable() {
   const { strategies, isLoading, strategyCount } = useStrategies();
+  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
 
   if (isLoading) {
     return (
@@ -109,30 +131,45 @@ export function StrategyTable() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Available Strategies ({strategyCount})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Strategy Name</TableHead>
-              <TableHead>Position Type</TableHead>
-              <TableHead>Maturity Date</TableHead>
-              <TableHead>Expected Profit</TableHead>
-              <TableHead>Fee</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {strategies.map((strategy) => (
-              <StrategyRow key={strategy.id.toString()} strategy={strategy} />
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Strategies ({strategyCount})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Strategy Name</TableHead>
+                <TableHead>Position Type</TableHead>
+                <TableHead>Maturity Date</TableHead>
+                <TableHead>Expected Profit</TableHead>
+                <TableHead>Fee</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {strategies.map((strategy) => (
+                <StrategyRow
+                  key={strategy.id.toString()}
+                  strategy={strategy}
+                  onBuyClick={setSelectedStrategy}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {selectedStrategy && (
+        <BuyStrategyDialog
+          strategy={selectedStrategy}
+          open={!!selectedStrategy}
+          onOpenChange={(open) => !open && setSelectedStrategy(null)}
+        />
+      )}
+    </>
   );
 }
