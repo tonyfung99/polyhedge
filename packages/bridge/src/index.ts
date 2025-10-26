@@ -28,6 +28,7 @@ async function bootstrap() {
 
     // Initialize Polymarket client (with Vincent service if enabled)
     const polymarketClient = new PolymarketClient(appConfig, vincentService);
+    await polymarketClient.initialize(); // Derive API credentials
     log.info('Polymarket client initialized', {
       mode: appConfig.useVincent ? 'Vincent PKP' : 'Direct',
     });

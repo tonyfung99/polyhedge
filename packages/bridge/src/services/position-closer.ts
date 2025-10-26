@@ -114,10 +114,10 @@ export class PositionCloser {
             realizedPnL: realizedPnL.toString(),
         });
 
-        // For compatibility, calculate payoutPerUSDC
-        const totalInvested = await this.getTotalInvested(strategyId);
-        const payoutPerUSDC = totalInvested > 0n
-            ? (totalPayout * parseUnits('1', 6)) / totalInvested
+        // Calculate payoutPerUSDC (how much users get back per USDC invested)
+        // Use the actual hedge order amount as total invested
+        const payoutPerUSDC = initialInvestment > 0n
+            ? (totalPayout * parseUnits('1', 6)) / initialInvestment
             : parseUnits('1', 6); // 1.0 = 100% payout
 
         return {
@@ -129,22 +129,5 @@ export class PositionCloser {
         };
     }
 
-    /**
-     * Get total invested amount for a strategy
-     * In production, this should query the contract or track via events
-     */
-    private async getTotalInvested(strategyId: bigint): Promise<bigint> {
-        // TODO: Implement proper tracking of total invested amount
-        // Options:
-        // 1. Query StrategyPurchased events and sum netAmount
-        // 2. Add to contract state
-        // 3. Maintain in database
-
-        // For MVP, return 1 million USDC as placeholder
-        log.warn('Using placeholder total invested amount', {
-            strategyId: strategyId.toString(),
-        });
-        return parseUnits('1000000', 6); // 1M USDC
-    }
 }
 

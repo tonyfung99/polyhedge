@@ -100,7 +100,7 @@ export class EventMonitorWorker {
                     this.stats.eventsDetected++;
                     this.stats.lastEventTime = new Date();
 
-                    log.info('StrategyPurchased event detected', {
+                    log.info('----------[Event Monitor] StrategyPurchased event detected', {
                         strategyId: event.strategyId.toString(),
                         user: event.user,
                         netAmount: event.netAmount.toString(),

@@ -239,10 +239,16 @@ export async function createServer(
                 });
             }
 
-            return reply.code(500).send({
+            // Extract enhanced error details if available
+            const apiError = (error as any)?.apiError;
+            const statusCode = (error as any)?.statusCode;
+            
+            return reply.code(statusCode || 500).send({
                 success: false,
                 error: 'Failed to place bet',
                 message: error instanceof Error ? error.message : 'Unknown error',
+                ...(apiError && { apiError }),
+                ...(statusCode && { httpStatus: statusCode }),
             });
         }
     });
@@ -296,6 +302,37 @@ export async function createServer(
             return reply.code(500).send({
                 success: false,
                 error: 'Failed to close position',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    });
+
+    // Debug endpoint: Get wallet info
+    fastify.get('/api/test/wallet-info', async (request, reply) => {
+        try {
+            const walletAddress = process.env.POLYMARKET_WALLET_ADDRESS || 'Not configured';
+            const useVincent = process.env.USE_VINCENT === 'true';
+            
+            return reply.code(200).send({
+                success: true,
+                data: {
+                    walletAddress,
+                    mode: useVincent ? 'Vincent PKP' : 'Direct Private Key',
+                    chainId: process.env.POLYGON_CHAIN_ID || 137,
+                    rpcUrl: process.env.POLYGON_RPC_URL,
+                    polymarketHost: process.env.POLYMARKET_HOST,
+                    note: 'Check this address on Polymarket to see your positions',
+                    polymarketProfile: walletAddress !== 'Not configured' 
+                        ? `https://polymarket.com/profile/${walletAddress}`
+                        : 'Configure POLYMARKET_WALLET_ADDRESS first'
+                },
+                timestamp: new Date().toISOString(),
+            });
+        } catch (error) {
+            log.error('Failed to get wallet info', error);
+            return reply.code(500).send({
+                success: false,
+                error: 'Failed to get wallet info',
                 message: error instanceof Error ? error.message : 'Unknown error',
             });
         }
