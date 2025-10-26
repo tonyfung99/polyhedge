@@ -463,13 +463,26 @@ class SmartContractDeployer:
             Transaction hash
         """
         try:
+            # Convert dictionaries to tuples for contract call
+            # Polymarket orders: (marketId, isYes, notionalBps, maxPriceBps, priority)
+            pm_orders_tuples = [
+                (order['marketId'], order['isYes'], order['notionalBps'], order['maxPriceBps'], order['priority'])
+                for order in strategy_def['polymarketOrders']
+            ]
+            
+            # Hedge orders: (asset, isLong, amount, maxSlippageBps)
+            hedge_orders_tuples = [
+                (order['asset'], order['isLong'], order['amount'], order['maxSlippageBps'])
+                for order in strategy_def['hedgeOrders']
+            ]
+            
             # Build transaction
             tx_dict = self.contract.functions.createStrategy(
                 strategy_def['name'],
                 strategy_def['feeBps'],
                 strategy_def['maturityTs'],
-                strategy_def['polymarketOrders'],
-                strategy_def['hedgeOrders'],
+                pm_orders_tuples,
+                hedge_orders_tuples,
                 strategy_def['expectedProfitBps']
             ).build_transaction({
                 'from': self.account.address,
