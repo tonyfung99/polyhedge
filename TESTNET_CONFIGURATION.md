@@ -23,8 +23,8 @@
 ```typescript
 // packages/hardhat/deploy/02_deploy_hedge_executor.ts
 arbitrum: {
-  exchangeRouter: "0x7C68C7E1CDBdD30B08C1c5433f385E814fAc2b9E",
-  router: "0x549352201EB5eba6cdc235D127cAe56d2145DAAF",
+  exchangeRouter: "0x87d66368cD08a7Ca42252f5ab44B2fb6d1Fb8d15",
+  router: "0x7452c558d45f8afC8c83dAe62C3f8A5BE19c71f6",
   usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
 }
 ```
