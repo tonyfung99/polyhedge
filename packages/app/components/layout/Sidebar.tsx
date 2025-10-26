@@ -29,8 +29,13 @@ export function Sidebar() {
   const { address, isConnected } = useAccount();
 
   return (
-    <div className="fixed left-0 top-16 bottom-0 w-60 border-r bg-muted/10">
+    <div className="fixed left-0 top-0 bottom-0 w-60 border-r bg-muted/10">
       <nav className="flex flex-col h-full">
+        {/* Logo/Brand at top of sidebar */}
+        <div className="h-16 flex items-center px-6 border-b">
+          <h1 className="text-2xl font-bold tracking-tight">POLYHEDGE</h1>
+        </div>
+
         {/* Navigation Links */}
         <div className="flex-1 py-6 px-3 space-y-1">
           {navItems.map((item) => {
