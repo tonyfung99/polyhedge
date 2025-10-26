@@ -48,6 +48,24 @@ Check https://docs.polymarket.com for official API documentation.
 
 ## Scripts
 
+### test-api.sh (New!)
+
+Interactive script to test the bridge service API:
+
+```bash
+./scripts/test-api.sh
+```
+
+**Features:**
+
+- ✅ Health checks
+- ✅ Monitor status
+- ✅ Place test bets
+- ✅ Close positions
+- ✅ Interactive menu
+
+See `API_TEST_COMMANDS.md` for all available curl commands.
+
 ### validate-market-ids.ts
 
 Test if market IDs are valid:

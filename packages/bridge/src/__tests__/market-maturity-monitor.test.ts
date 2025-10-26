@@ -109,8 +109,8 @@ describe('MarketMaturityMonitor', () => {
 
     describe('start and stop', () => {
         it('should start monitoring', async () => {
-            // Don't await start() as it runs forever
-            monitor.start();
+            // Start monitor
+            const startPromise = monitor.start();
 
             // Let it run for a bit
             await vi.advanceTimersByTimeAsync(50);
@@ -118,28 +118,41 @@ describe('MarketMaturityMonitor', () => {
             expect(monitor.getStatus().isRunning).toBe(true);
 
             monitor.stop();
+            await vi.advanceTimersByTimeAsync(150);
+            await startPromise;
         });
 
         it('should not start if already running', async () => {
-            // Don't await start() as it runs forever
-            monitor.start();
+            // Start monitor
+            const startPromise = monitor.start();
             await vi.advanceTimersByTimeAsync(50);
 
-            // Try to start again
+            // Try to start again (should return immediately)
             await monitor.start();
 
             expect(monitor.getStatus().isRunning).toBe(true);
 
             monitor.stop();
+            await vi.advanceTimersByTimeAsync(150);
+            await startPromise;
         });
 
         it('should stop monitoring', async () => {
-            // Don't await start() as it runs forever
-            monitor.start();
+            // Start monitor (don't await as it runs forever)
+            const startPromise = monitor.start();
+            
+            // Wait for monitor to actually start
             await vi.advanceTimersByTimeAsync(50);
+            expect(monitor.getStatus().isRunning).toBe(true);
 
+            // Stop the monitor
             monitor.stop();
-            await vi.advanceTimersByTimeAsync(50);
+            
+            // Advance timers to allow the while loop to exit
+            await vi.advanceTimersByTimeAsync(150);
+            
+            // Wait for the start promise to resolve
+            await startPromise;
 
             expect(monitor.getStatus().isRunning).toBe(false);
         });
@@ -147,28 +160,53 @@ describe('MarketMaturityMonitor', () => {
 
     describe('polling', () => {
         it('should increment poll count on each poll', async () => {
-            // Don't await start()
-            monitor.start();
+            // Mock fetchMarketInfo to return open market
+            vi.spyOn(monitor as any, 'fetchMarketInfo').mockResolvedValue({
+                marketId: 'market-1',
+                endDate: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+                active: true,
+                closed: false,
+            });
 
-            // Wait for 2 poll intervals
-            await vi.advanceTimersByTimeAsync(250);
+            // Start monitor
+            const startPromise = monitor.start();
+
+            // Wait for first poll to complete (poll interval is 100ms)
+            await vi.advanceTimersByTimeAsync(150);
+            // Run any pending promises
+            await Promise.resolve();
 
             const status = monitor.getStatus();
             expect(status.stats.pollCount).toBeGreaterThan(0);
 
             monitor.stop();
+            await vi.advanceTimersByTimeAsync(150);
+            await startPromise;
         });
 
         it('should check all tracked markets', async () => {
-            // Don't await start()
-            monitor.start();
+            // Mock fetchMarketInfo to return open market
+            vi.spyOn(monitor as any, 'fetchMarketInfo').mockResolvedValue({
+                marketId: 'market-1',
+                endDate: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+                active: true,
+                closed: false,
+            });
 
+            // Start monitor
+            const startPromise = monitor.start();
+
+            // Wait for first poll to complete
             await vi.advanceTimersByTimeAsync(150);
+            // Run any pending promises
+            await Promise.resolve();
 
             const status = monitor.getStatus();
             expect(status.stats.marketsChecked).toBeGreaterThan(0);
 
             monitor.stop();
+            await vi.advanceTimersByTimeAsync(150);
+            await startPromise;
         });
     });
 
