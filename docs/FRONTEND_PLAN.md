@@ -27,6 +27,75 @@ We're creating a **new frontend package** with shadcn/ui instead of modifying ex
 
 ---
 
+## Layout Design: Vertical Sidebar
+
+### Overall Structure
+
+```
+┌─────────────────────────────────────────────────────┐
+│  POLYHEDGE          [Wallet: 0x1234...5678]        │ ← Top Bar
+├──────────┬──────────────────────────────────────────┤
+│          │                                          │
+│  Home    │                                          │
+│          │                                          │
+│  Strategies│         Main Content Area             │
+│          │                                          │
+│  Dashboard│                                         │
+│          │                                          │
+│          │                                          │
+│          │                                          │
+│  [User]  │                                          │
+│  0x12... │                                          │
+└──────────┴──────────────────────────────────────────┘
+   Sidebar           Content
+```
+
+### Top Bar (Fixed)
+- **Left**: "POLYHEDGE" logo/brand name
+- **Right**: Wallet connection (RainbowKit ConnectButton)
+- **Height**: 64px
+- **Styling**: Border bottom, subtle shadow
+
+### Left Sidebar (Fixed)
+- **Width**: 240px (desktop), collapsible on mobile
+- **Background**: Slightly darker than main content
+- **Border**: Right border
+
+**Navigation Items**:
+```typescript
+const navItems = [
+  { icon: HomeIcon, label: 'Home', href: '/' },
+  { icon: ChartBarIcon, label: 'Strategies', href: '/strategies' },
+  { icon: WalletIcon, label: 'Dashboard', href: '/dashboard' },
+];
+```
+
+**Bottom Section** (in sidebar):
+- Connected wallet address (truncated)
+- Network indicator (Arbitrum)
+- Optional: USDC balance
+
+### Main Content Area
+- **Left margin**: 240px (sidebar width)
+- **Top margin**: 64px (top bar height)
+- **Padding**: 24px
+- **Max width**: 1400px (centered)
+
+### Responsive Behavior
+- **Desktop (>1024px)**: Sidebar always visible
+- **Tablet (768-1024px)**: Sidebar collapsible with hamburger menu
+- **Mobile (<768px)**: Sidebar hidden, hamburger menu to open as overlay
+
+### shadcn Components to Use
+```bash
+npx shadcn@latest add navigation-menu  # For sidebar nav
+npx shadcn@latest add sheet            # For mobile sidebar overlay
+npx shadcn@latest add avatar           # For user profile in sidebar
+npx shadcn@latest add separator        # For visual dividers
+```
+
+---
+
 ## Core Features to Build
 
 ### 1. Strategy Marketplace (Table View)
@@ -289,6 +358,8 @@ packages/app/
 │   │   ├── dialog.tsx
 │   │   ├── table.tsx
 │   │   ├── input.tsx
+│   │   ├── sheet.tsx          ← Mobile sidebar overlay
+│   │   ├── avatar.tsx         ← User profile
 │   │   └── ...
 │   ├── strategies/
 │   │   ├── StrategyTable.tsx          ← Marketplace table
@@ -298,8 +369,10 @@ packages/app/
 │   │   ├── PnLSummary.tsx             ← Summary cards
 │   │   └── ClaimButton.tsx            ← Claim rewards
 │   ├── layout/
-│   │   ├── Header.tsx                 ← FEATURE #4: Wallet connection
-│   │   └── Footer.tsx
+│   │   ├── TopBar.tsx                 ← POLYHEDGE logo + wallet
+│   │   ├── Sidebar.tsx                ← Left navigation sidebar
+│   │   ├── AppLayout.tsx              ← Main layout wrapper
+│   │   └── MobileNav.tsx              ← Mobile hamburger menu
 │   └── web3/
 │       └── NetworkGuard.tsx           ← Ensure Arbitrum network
 ├── lib/
