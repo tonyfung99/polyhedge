@@ -489,7 +489,20 @@ class SmartContractDeployer:
                 for order in strategy_def['hedgeOrders']
             ]
             
-            # Build transaction
+            # Build transaction with EIP-1559 gas parameters
+            # Get current gas prices
+            latest_block = self.w3.eth.get_block('latest')
+            base_fee = latest_block.get('baseFeePerGas', 0)
+            
+            # Set max priority fee (tip to miners)
+            max_priority_fee = self.w3.eth.max_priority_fee
+            
+            # Set max fee per gas (base fee + priority fee + buffer)
+            # Add 20% buffer to handle base fee fluctuations
+            max_fee_per_gas = int(base_fee * 1.2) + max_priority_fee
+            
+            self.logger.debug(f"Gas pricing - Base: {base_fee}, Priority: {max_priority_fee}, Max: {max_fee_per_gas}")
+            
             tx_dict = self.contract.functions.createStrategy(
                 strategy_def['name'],
                 strategy_def['feeBps'],
@@ -501,7 +514,8 @@ class SmartContractDeployer:
                 'from': self.account.address,
                 'nonce': self.w3.eth.get_transaction_count(self.account.address),
                 'gas': 500_000,
-                'gasPrice': self.w3.eth.gas_price,
+                'maxFeePerGas': max_fee_per_gas,
+                'maxPriorityFeePerGas': max_priority_fee,
             })
             
             # Sign and send
@@ -590,6 +604,9 @@ class StrategyScanner:
         """
         assets = assets or ['BTC', 'ETH']
         deployed_strategies = []
+        
+        # Track deployed strategy signatures to prevent duplicates
+        deployed_signatures = set()
         
         self.logger.info(f"Starting strategy scanning for assets: {assets}")
         
@@ -689,6 +706,15 @@ class StrategyScanner:
                         net_amount_usdc
                     )
                     
+                    # Create a unique signature for this strategy to prevent duplicates
+                    # Use strategy name + maturity timestamp as signature
+                    strategy_signature = f"{strategy_def['name']}_{strategy_def['maturityTs']}"
+                    
+                    # Check if this strategy was already deployed successfully
+                    if strategy_signature in deployed_signatures:
+                        self.logger.info(f"⏭️  Skipping strategy {strategy_id} - already deployed successfully")
+                        continue
+                    
                     # Deploy to contract
                     self.logger.info(f"📤 Deploying strategy {strategy_id} to smart contract...")
                     
@@ -697,8 +723,13 @@ class StrategyScanner:
                         strategy_def['txHash'] = tx_hash
                         deployed_strategies.append(strategy_def)
                         
+                        # Mark this strategy as deployed
+                        deployed_signatures.add(strategy_signature)
+                        self.logger.info(f"✅ Successfully deployed strategy {strategy_id}")
+                        
                     except Exception as e:
                         self.logger.error(f"Failed to deploy strategy: {e}")
+                        # Don't add to deployed_signatures since it failed
                         continue
             
             except Exception as e:
