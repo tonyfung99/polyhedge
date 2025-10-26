@@ -52,13 +52,30 @@ Verify it's running:
 curl http://localhost:3001/health
 ```
 
-### 4. Start the Admin Portal
+### 4. Start ngrok Tunnel (Required for OAuth)
+
+In another terminal:
+
+```bash
+ngrok http 3002
+```
+
+**Important:** Copy the ngrok URL (e.g., `https://abc123.ngrok-free.app`)
+
+Then update your **Vincent App redirect URL** in the Vincent Dashboard to this ngrok URL.
+
+> 💡 See [NGROK_SETUP.md](./NGROK_SETUP.md) for detailed instructions
+
+### 5. Start the Admin Portal
 
 ```bash
 yarn dev
 ```
 
-The app will open at: `http://localhost:3002`
+The app will be available at:
+
+- 🌐 Publicly: `https://your-ngrok-url.ngrok-free.app` (use this!)
+- 🏠 Locally: `http://localhost:3002` (won't work with Vincent OAuth)
 
 ## First Time Usage
 

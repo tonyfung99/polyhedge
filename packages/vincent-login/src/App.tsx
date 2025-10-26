@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { JwtProvider } from '@lit-protocol/vincent-app-sdk/react';
 import VincentLogin from './components/VincentLogin';
 import './App.css';
+
+const VINCENT_APP_ID = parseInt(import.meta.env.VITE_VINCENT_APP_ID || '0');
 
 function App() {
   const [isConfigured, setIsConfigured] = useState(false);
@@ -57,9 +60,11 @@ VITE_POLYGON_RPC_URL=https://polygon-mainnet.g.alchemy.com/v2/your-key`}
   }
 
   return (
-    <div className="app">
-      <VincentLogin />
-    </div>
+    <JwtProvider appId={VINCENT_APP_ID}>
+      <div className="app">
+        <VincentLogin />
+      </div>
+    </JwtProvider>
   );
 }
 

@@ -78,6 +78,19 @@ yarn dev
 
 The app will start on `http://localhost:3002`
 
+### 🌐 Using with ngrok (Required for OAuth)
+
+Vincent Protocol requires a publicly accessible URL for OAuth redirects. Use ngrok for local development:
+
+```bash
+# In a separate terminal
+ngrok http 3002
+```
+
+Then update your Vincent App redirect URL to the ngrok URL (e.g., `https://xyz.ngrok-free.app`)
+
+**📚 For detailed ngrok setup instructions, see [NGROK_SETUP.md](./NGROK_SETUP.md)**
+
 ### Production Build
 
 ```bash

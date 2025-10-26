@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { getVincentWebAppClient } from '@lit-protocol/vincent-app-sdk';
+import { useState, useEffect, useCallback } from 'react';
+import { useJwtContext, useVincentWebAuthClient } from '@lit-protocol/vincent-app-sdk/react';
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
 import { LitAbility, LitActionResource } from '@lit-protocol/auth-helpers';
 import './VincentLogin.css';
 
-const VINCENT_APP_ID = import.meta.env.VITE_VINCENT_APP_ID || '';
+const VINCENT_APP_ID = parseInt(import.meta.env.VITE_VINCENT_APP_ID || '0');
 const BRIDGE_API_URL = import.meta.env.VITE_BRIDGE_API_URL || 'http://localhost:3001';
 const LIT_NETWORK = (import.meta.env.VITE_LIT_NETWORK || 'datil-dev') as 'datil' | 'datil-dev' | 'datil-test';
+const REDIRECT_URI = window.location.origin;
 
 interface PKPInfo {
   publicKey: string;
@@ -14,52 +15,58 @@ interface PKPInfo {
 }
 
 export default function VincentLogin() {
-  const [jwt, setJwt] = useState('');
+  const { authInfo } = useJwtContext();
+  const vincentWebAuthClient = useVincentWebAuthClient(VINCENT_APP_ID);
+  
   const [pkpInfo, setPkpInfo] = useState<PKPInfo | null>(null);
   const [sessionSigs, setSessionSigs] = useState<any>(null);
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const vincent = getVincentWebAppClient({ appId: VINCENT_APP_ID });
 
-  // 1. Extract JWT from URL after Vincent redirect
-  useEffect(() => {
-    const extractJWT = () => {
-      if (vincent.isLogin()) {
-        try {
-          const result = vincent.decodeVincentLoginJWT(window.location.origin);
-          if (result) {
-            const { jwtStr } = result;
-            setJwt(jwtStr);
-            setStatus('✅ Vincent JWT acquired! Now extracting PKP info...');
-            
-            // Clean up URL
-            vincent.removeLoginJWTFromURI();
-            
-            // Automatically extract PKP info
-            extractPKPInfo(jwtStr);
-          }
-        } catch (err) {
-          console.error('Error decoding JWT:', err);
-          setError(`Failed to decode JWT: ${(err as Error).message}`);
-          setStatus('❌ Error decoding JWT');
-        }
-      }
-    };
+  // 4. Generate session signatures for PKP
+  const generateSessionSigs = useCallback(async (
+    litClient: LitNodeClient,
+    pkpEthAddress: string,
+    jwtToken: string
+  ) => {
+    try {
+      setStatus('Generating session signatures...');
 
-    extractJWT();
+      // Generate session signatures with 24-hour expiry
+      const sessionSigs = await litClient.getSessionSigs({
+        chain: 'ethereum',
+        expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
+        resourceAbilityRequests: [
+          {
+            resource: new LitActionResource('*'),
+            ability: LitAbility.LitActionExecution,
+          },
+        ],
+        authNeededCallback: async ({ uri }) => {
+          // Use the JWT for authentication
+          const authSig = {
+            sig: jwtToken,
+            derivedVia: 'vincent.jwt',
+            signedMessage: uri || '',
+            address: pkpEthAddress,
+          };
+          return authSig;
+        },
+      });
+
+      setSessionSigs(sessionSigs);
+      setStatus('✅ Session signatures generated! Ready to send to backend.');
+      
+    } catch (err) {
+      console.error('Error generating session signatures:', err);
+      setError(`Failed to generate session sigs: ${(err as Error).message}`);
+      setStatus('❌ Error generating session signatures');
+    }
   }, []);
 
-  // 2. User initiates Vincent login
-  const loginWithVincent = () => {
-    setStatus('Redirecting to Vincent Connect...');
-    setError('');
-    vincent.redirectToConsentPage({ redirectUri: window.location.href });
-  };
-
   // 3. Extract PKP information from JWT
-  const extractPKPInfo = async (jwtToken: string) => {
+  const extractPKPInfo = useCallback(async (jwtToken: string) => {
     try {
       setIsLoading(true);
       setStatus('Connecting to Lit Protocol network...');
@@ -74,79 +81,69 @@ export default function VincentLogin() {
       setStatus('Connected to Lit Protocol. Extracting PKP info...');
 
       // Decode JWT to get PKP information
-      // The JWT contains the user's authentication info
       const jwtPayload = JSON.parse(atob(jwtToken.split('.')[1]));
       
       // Get PKP public key and address from the JWT
-      // Note: The exact structure depends on Vincent SDK implementation
-      // You may need to adjust this based on actual JWT structure
-      const pkpPublicKey = jwtPayload.sub || jwtPayload.pkp_public_key;
+      const pkpPublicKey = jwtPayload.pkpPublicKey || jwtPayload.sub;
+      const pkpEthAddress = jwtPayload.pkpEthAddress || jwtPayload.address;
       
       if (!pkpPublicKey) {
         throw new Error('PKP public key not found in JWT');
       }
 
-      // Derive Ethereum address from public key
-      const pkpEthAddress = await litClient.computeAddress(pkpPublicKey);
+      if (!pkpEthAddress) {
+        throw new Error('PKP ETH address not found in JWT');
+      }
 
       setPkpInfo({
         publicKey: pkpPublicKey,
         ethAddress: pkpEthAddress,
       });
 
-      setStatus('PKP info extracted. Generating session signatures...');
+      setStatus('✅ PKP info extracted! Now generating session signatures...');
 
-      // Generate session signatures for 24 hours
-      const expirationTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      
-      const generatedSessionSigs = await litClient.getSessionSigs({
-        pkpPublicKey: pkpPublicKey,
-        chain: 'polygon',
-        expiration: expirationTime.toISOString(),
-        resourceAbilityRequests: [
-          {
-            resource: new LitActionResource('*'),
-            ability: LitAbility.PKPSigning,
-          },
-        ],
-        // Use the JWT as authentication
-        authNeededCallback: async ({ uri, expiration, resourceAbilityRequests }) => {
-          return {
-            sig: jwtToken,
-            derivedVia: 'vincent-jwt',
-            signedMessage: uri,
-            address: pkpEthAddress,
-          };
-        },
-      });
+      // 4. Generate session signatures
+      await generateSessionSigs(litClient, pkpEthAddress, jwtToken);
 
-      setSessionSigs(generatedSessionSigs);
-      setStatus('✅ Session signatures generated! Ready to send to backend.');
-
-      // Disconnect Lit client
-      await litClient.disconnect();
-      setIsLoading(false);
     } catch (err) {
       console.error('Error extracting PKP info:', err);
       setError(`Failed to extract PKP info: ${(err as Error).message}`);
       setStatus('❌ Error extracting PKP info');
+    } finally {
       setIsLoading(false);
     }
-  };
+  }, [generateSessionSigs]);
 
-  // 4. Send credentials to bridge service
-  const sendToBackend = async () => {
-    if (!jwt || !pkpInfo || !sessionSigs) {
-      setError('Missing required credentials');
+  // 2. Auto-process JWT when available
+  useEffect(() => {
+    if (authInfo?.jwt && !pkpInfo) {
+      setStatus('✅ Vincent JWT acquired! Now extracting PKP info...');
+      extractPKPInfo(authInfo.jwt);
+    }
+  }, [authInfo?.jwt, pkpInfo, extractPKPInfo]);
+
+  // 1. User initiates Vincent login
+  const loginWithVincent = useCallback(() => {
+    setStatus('Redirecting to Vincent Connect...');
+    setError('');
+    vincentWebAuthClient.redirectToConnectPage({
+      redirectUri: REDIRECT_URI,
+    });
+  }, [vincentWebAuthClient]);
+
+  // 5. Send delegation to bridge service
+  const sendToBridge = async () => {
+    if (!pkpInfo || !sessionSigs || !authInfo?.jwt) {
+      setError('Missing PKP info, session signatures, or JWT');
       return;
     }
 
     try {
       setIsLoading(true);
-      setStatus('Sending credentials to bridge service...');
-      setError('');
+      setStatus('Sending delegation to bridge service...');
 
-      const expirationTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      // Calculate expiry (24 hours from now)
+      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
 
       const response = await fetch(`${BRIDGE_API_URL}/api/admin/auth`, {
         method: 'POST',
@@ -157,182 +154,152 @@ export default function VincentLogin() {
           pkpPublicKey: pkpInfo.publicKey,
           pkpEthAddress: pkpInfo.ethAddress,
           sessionSigs: sessionSigs,
-          expiresAt: expirationTime.toISOString(),
+          expiresAt: expiresAt,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to authenticate with backend');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('Backend response:', data);
-
+      const result = await response.json();
       setStatus('✅ Successfully authenticated with bridge service!');
-      setIsLoading(false);
+      console.log('Bridge service response:', result);
 
-      // Show success message for 3 seconds, then offer to reset
-      setTimeout(() => {
-        setStatus('✅ Admin delegation active. You can close this window or re-authenticate.');
-      }, 3000);
     } catch (err) {
-      console.error('Error sending to backend:', err);
-      setError(`Failed to authenticate: ${(err as Error).message}`);
-      setStatus('❌ Error sending to backend');
+      console.error('Error sending to bridge:', err);
+      setError(`Failed to send to bridge: ${(err as Error).message}`);
+      setStatus('❌ Error sending to bridge service');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // 5. Check bridge service status
+  // 6. Check bridge service status
   const checkBridgeStatus = async () => {
     try {
       setIsLoading(true);
       setStatus('Checking bridge service status...');
-      setError('');
 
       const response = await fetch(`${BRIDGE_API_URL}/api/vincent/status`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch bridge status');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('Bridge status:', data);
-
-      if (data.vincentEnabled && data.delegated) {
-        setStatus(`✅ Bridge is configured and delegated to: ${data.adminAddress}`);
-      } else if (data.vincentEnabled && !data.delegated) {
-        setStatus('⚠️ Bridge is configured but not delegated. Please authenticate.');
+      const status = await response.json();
+      
+      if (status.delegated) {
+        setStatus(`✅ Bridge is delegated! PKP: ${status.pkpEthAddress?.substring(0, 10)}...`);
       } else {
-        setStatus('❌ Bridge service does not have Vincent enabled');
+        setStatus('⚠️ Bridge service is not yet delegated');
       }
+      
+      console.log('Bridge status:', status);
 
-      setIsLoading(false);
     } catch (err) {
       console.error('Error checking bridge status:', err);
-      setError(`Failed to check status: ${(err as Error).message}`);
-      setStatus('❌ Error checking bridge status');
+      setError(`Failed to check bridge status: ${(err as Error).message}`);
+      setStatus('❌ Error checking bridge service');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // 6. Reset state
-  const reset = () => {
-    setJwt('');
-    setPkpInfo(null);
-    setSessionSigs(null);
-    setStatus('');
-    setError('');
-  };
-
   return (
-    <div className="vincent-login-container">
-      <h1>🔐 Polyhedge Admin Portal</h1>
-      <p className="subtitle">Authenticate with Vincent to manage the bridge service</p>
+    <div className="vincent-login">
+      <div className="login-card">
+        <h1>🔐 Polyhedge Admin Portal</h1>
+        <p className="subtitle">Delegate your wallet to the bridge service using Vincent Protocol</p>
 
-      <div className="config-info">
-        <div className="config-item">
-          <strong>Vincent App ID:</strong> {VINCENT_APP_ID}
-        </div>
-        <div className="config-item">
-          <strong>Bridge Service:</strong> {BRIDGE_API_URL}
-        </div>
-        <div className="config-item">
-          <strong>Lit Network:</strong> {LIT_NETWORK}
-        </div>
-      </div>
-
-      <div className="button-group">
-        <button
-          onClick={loginWithVincent}
-          disabled={isLoading || !!jwt}
-          className="primary-button"
-        >
-          {jwt ? '✓ Logged In' : '🚀 Login with Vincent'}
-        </button>
-
-        <button
-          onClick={sendToBackend}
-          disabled={!jwt || !pkpInfo || !sessionSigs || isLoading}
-          className="success-button"
-        >
-          📤 Send to Bridge Service
-        </button>
-
-        <button
-          onClick={checkBridgeStatus}
-          disabled={isLoading}
-          className="info-button"
-        >
-          🔍 Check Bridge Status
-        </button>
-
-        <button
-          onClick={reset}
-          disabled={isLoading || (!jwt && !pkpInfo)}
-          className="secondary-button"
-        >
-          🔄 Reset
-        </button>
-      </div>
-
-      {status && (
-        <div className={`status-box ${error ? 'error' : 'success'}`}>
-          {status}
-        </div>
-      )}
-
-      {error && (
-        <div className="error-box">
-          ❌ {error}
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Processing...</p>
-        </div>
-      )}
-
-      {pkpInfo && (
-        <div className="info-panel">
-          <h3>PKP Information</h3>
-          <div className="info-item">
-            <strong>PKP Address:</strong>
-            <code>{pkpInfo.ethAddress}</code>
+        {error && (
+          <div className="error-box">
+            <strong>❌ Error:</strong> {error}
           </div>
-          <div className="info-item">
-            <strong>Public Key:</strong>
-            <code className="truncate">{pkpInfo.publicKey}</code>
+        )}
+
+        {status && (
+          <div className="status-box">
+            {status}
           </div>
-          <div className="info-item">
-            <strong>Session Valid Until:</strong>
-            <code>{new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()}</code>
+        )}
+
+        {!authInfo?.jwt && (
+          <div className="login-section">
+            <button 
+              className="login-button"
+              onClick={loginWithVincent}
+              disabled={isLoading}
+            >
+              🚀 Login with Vincent
+            </button>
+            <p className="info-text">
+              You'll be redirected to Vincent Connect to authenticate
+            </p>
           </div>
+        )}
+
+        {authInfo?.jwt && pkpInfo && (
+          <div className="info-section">
+            <h3>✅ PKP Information</h3>
+            <div className="info-item">
+              <label>Public Key:</label>
+              <code>{pkpInfo.publicKey}</code>
+            </div>
+            <div className="info-item">
+              <label>ETH Address:</label>
+              <code>{pkpInfo.ethAddress}</code>
+            </div>
+            <div className="info-item">
+              <label>Session Signatures:</label>
+              <code>{sessionSigs ? '✅ Generated' : '⏳ Pending...'}</code>
+            </div>
+          </div>
+        )}
+
+        {authInfo?.jwt && sessionSigs && (
+          <div className="actions-section">
+            <button 
+              className="action-button primary"
+              onClick={sendToBridge}
+              disabled={isLoading}
+            >
+              📤 Send to Bridge Service
+            </button>
+            
+            <button 
+              className="action-button secondary"
+              onClick={checkBridgeStatus}
+              disabled={isLoading}
+            >
+              🔍 Check Bridge Status
+            </button>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Processing...</p>
+          </div>
+        )}
+
+        <div className="footer-info">
+          <p>
+            <strong>App ID:</strong> {VINCENT_APP_ID || 'Not configured'}
+          </p>
+          <p>
+            <strong>Bridge URL:</strong> {BRIDGE_API_URL}
+          </p>
+          <p>
+            <strong>Network:</strong> {LIT_NETWORK}
+          </p>
+          <p>
+            <strong>JWT:</strong> {authInfo?.jwt ? '✅ Present' : '❌ Not logged in'}
+          </p>
         </div>
-      )}
-
-      {jwt && (
-        <details className="jwt-details">
-          <summary>View JWT Token</summary>
-          <textarea value={jwt} readOnly rows={6} />
-        </details>
-      )}
-
-      <div className="instructions">
-        <h3>📋 Instructions</h3>
-        <ol>
-          <li>Click "Login with Vincent" to authenticate</li>
-          <li>You'll be redirected to Vincent Connect</li>
-          <li>Create or unlock your admin wallet</li>
-          <li>You'll be redirected back with credentials</li>
-          <li>Click "Send to Bridge Service" to complete setup</li>
-          <li>Use "Check Bridge Status" to verify delegation</li>
-        </ol>
       </div>
     </div>
   );
 }
-
