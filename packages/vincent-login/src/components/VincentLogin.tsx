@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getWebAuthClient } from '@lit-protocol/vincent-app-sdk/webAuthClient';
+import { getVincentWebAppClient } from '@lit-protocol/vincent-app-sdk';
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
 import { LitAbility, LitActionResource } from '@lit-protocol/auth-helpers';
 import './VincentLogin.css';
@@ -21,24 +21,30 @@ export default function VincentLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const vincent = getWebAuthClient({ appId: VINCENT_APP_ID });
+  const vincent = getVincentWebAppClient({ appId: VINCENT_APP_ID });
 
-  // 1. Extract JWT from URL hash after redirect
+  // 1. Extract JWT from URL after Vincent redirect
   useEffect(() => {
     const extractJWT = () => {
-      const hash = window.location.hash;
-      const jwtParam = hash.match(/jwt=([^&]+)/);
-      
-      if (jwtParam && jwtParam[1]) {
-        const extractedJwt = jwtParam[1];
-        setJwt(extractedJwt);
-        setStatus('✅ Vincent JWT acquired! Now extracting PKP info...');
-        
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Automatically extract PKP info
-        extractPKPInfo(extractedJwt);
+      if (vincent.isLogin()) {
+        try {
+          const result = vincent.decodeVincentLoginJWT(window.location.origin);
+          if (result) {
+            const { jwtStr } = result;
+            setJwt(jwtStr);
+            setStatus('✅ Vincent JWT acquired! Now extracting PKP info...');
+            
+            // Clean up URL
+            vincent.removeLoginJWTFromURI();
+            
+            // Automatically extract PKP info
+            extractPKPInfo(jwtStr);
+          }
+        } catch (err) {
+          console.error('Error decoding JWT:', err);
+          setError(`Failed to decode JWT: ${(err as Error).message}`);
+          setStatus('❌ Error decoding JWT');
+        }
       }
     };
 
@@ -49,7 +55,7 @@ export default function VincentLogin() {
   const loginWithVincent = () => {
     setStatus('Redirecting to Vincent Connect...');
     setError('');
-    vincent.redirectToConnectPage();
+    vincent.redirectToConsentPage({ redirectUri: window.location.href });
   };
 
   // 3. Extract PKP information from JWT

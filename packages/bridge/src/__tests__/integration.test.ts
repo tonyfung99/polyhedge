@@ -5,7 +5,7 @@ import { AppConfig } from '../config/env.js';
 import { FastifyInstance } from 'fastify';
 
 describe('Integration Tests', () => {
-    let server: FastifyInstance;
+    let server: FastifyInstance | undefined;
     let worker: EventMonitorWorker;
     let mockConfig: AppConfig;
 
@@ -46,7 +46,8 @@ describe('Integration Tests', () => {
         worker = new EventMonitorWorker(mockConfig);
         worker.enableTestMode();
 
-        server = await startServer(3002, '127.0.0.1', worker);
+        // Use port 0 to let OS assign a free port automatically
+        server = await startServer(0, '127.0.0.1', worker);
 
         // Start worker
         worker.startTestMode();
@@ -57,10 +58,15 @@ describe('Integration Tests', () => {
 
     afterAll(async () => {
         worker.stop();
-        await server.close();
+        if (server) {
+            await server.close();
+        }
     });
 
     it('should serve health endpoint', async () => {
+        expect(server).toBeDefined();
+        if (!server) return;
+
         const response = await server.inject({
             method: 'GET',
             url: '/health',
@@ -70,6 +76,9 @@ describe('Integration Tests', () => {
     });
 
     it('should show worker status', async () => {
+        expect(server).toBeDefined();
+        if (!server) return;
+
         const response = await server.inject({
             method: 'GET',
             url: '/api/monitor/event-status',
@@ -84,6 +93,9 @@ describe('Integration Tests', () => {
     });
 
     it('should track event statistics', async () => {
+        expect(server).toBeDefined();
+        if (!server) return;
+
         const response = await server.inject({
             method: 'GET',
             url: '/api/monitor/event-stats',
