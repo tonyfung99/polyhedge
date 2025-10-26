@@ -51,19 +51,35 @@ class PolymarketMarketData:
     
     async def fetch_active_markets(self, asset: str = "BTC") -> List[Dict]:
         """
-        Fetch active crypto price prediction markets from Polymarket
+        Fetch active crypto price prediction markets from Polymarket with real current prices.
         
         Args:
             asset: Asset to scan (BTC, ETH, etc.)
             
         Returns:
-            List of market data dictionaries
+            List of market data dictionaries with real current prices
         """
         try:
-            # Fetch markets using bridge's Polymarket client
-            markets = await self.api_client.get_active_crypto_price_markets(asset)
-            logger.info(f"Fetched {len(markets)} markets for {asset}")
+            # Fetch markets from Next.js endpoints
+            markets = await self.api_client.get_crypto_price_markets_from_nextjs(asset)
+            logger.info(f"Fetched {len(markets)} price markets for {asset}")
+            
+            # Fetch real current price from CoinGecko
+            current_price = await self.api_client.get_current_price(asset)
+            
+            if current_price > 0:
+                logger.info(f"✅ Fetched real current price for {asset}: ${current_price:,.2f}")
+                
+                # Inject real current price into all markets
+                for market in markets:
+                    market['current_price'] = current_price
+                
+                logger.info(f"Updated {len(markets)} markets with real current price")
+            else:
+                logger.warning(f"Could not fetch real price for {asset}, using market midpoint")
+            
             return markets
+            
         except Exception as e:
             logger.error(f"Error fetching markets: {e}")
             return []
@@ -189,8 +205,8 @@ class HedgeCalculator:
             })
             
             self.logger.info(
-                f"Hedge Order: SHORT {hedge['amount']:.2f} USDC of {hedge['asset']} "
-                f"(hedge for {hedge['opportunity_edge']:.1f}% edge opportunity)"
+                f"Hedge Order: SHORT {hedge_amount_usdc:.2f} USDC of {hedge['asset']} "
+                f"(hedge for {opp['edge_percentage']:.1f}% edge opportunity)"
             )
         
         return hedge_orders, total_hedge_allocation
@@ -245,7 +261,18 @@ class StrategyGrouper:
             processed.add(idx)
             
             asset = row['asset']
-            maturity = row.get('maturity_date', datetime.now())
+            maturity = row.get('maturity_date', None)
+            
+            # Parse maturity date if it's a string
+            if isinstance(maturity, str):
+                try:
+                    maturity = datetime.fromisoformat(maturity.replace('Z', '+00:00'))
+                except Exception:
+                    maturity = None
+            
+            # If no maturity, use current UTC time (timezone-aware)
+            if maturity is None:
+                maturity = datetime.now(datetime.now().astimezone().tzinfo)
             
             # Find complementary opportunities
             for idx2, row2 in opportunities_df.iterrows():
@@ -257,7 +284,19 @@ class StrategyGrouper:
                     continue
                 
                 # Check maturity compatibility (within 1 day)
-                maturity2 = row2.get('maturity_date', datetime.now())
+                maturity2 = row2.get('maturity_date', None)
+                
+                # Parse maturity2 date if it's a string
+                if isinstance(maturity2, str):
+                    try:
+                        maturity2 = datetime.fromisoformat(maturity2.replace('Z', '+00:00'))
+                    except Exception:
+                        maturity2 = None
+                
+                # If no maturity2, use current UTC time (timezone-aware)
+                if maturity2 is None:
+                    maturity2 = datetime.now(datetime.now().astimezone().tzinfo)
+                
                 if abs((maturity - maturity2).days) > 1:
                     continue
                 
@@ -441,7 +480,12 @@ class SmartContractDeployer:
             
             # Sign and send
             signed_tx = self.w3.eth.account.sign_transaction(tx_dict, self.account.key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            # Handle both old and new web3.py API
+            try:
+                raw_tx = signed_tx['rawTransaction']
+            except (TypeError, KeyError):
+                raw_tx = signed_tx.rawTransaction
+            tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             
             self.logger.info(f"Deployed strategy: {tx_hash.hex()}")
             
