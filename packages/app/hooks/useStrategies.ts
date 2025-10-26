@@ -36,7 +36,11 @@ export type Strategy = {
  */
 export function useStrategies() {
   // First, get the next strategy ID to know how many strategies exist
-  const { data: nextStrategyId, isLoading: isLoadingCount } = useReadContract({
+  const {
+    data: nextStrategyId,
+    isLoading: isLoadingCount,
+    error: countError,
+  } = useReadContract({
     address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
     abi: StrategyManagerABI,
     functionName: "nextStrategyId",
@@ -49,16 +53,19 @@ export function useStrategies() {
     : [];
 
   // Read all strategies in parallel
-  const { data: strategiesData, isLoading: isLoadingStrategies } =
-    useReadContracts({
-      contracts: strategyIds.map((id) => ({
-        address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
-        abi: StrategyManagerABI,
-        functionName: "strategies",
-        args: [BigInt(id)],
-        chainId: arbitrumSepolia.id,
-      })),
-    });
+  const {
+    data: strategiesData,
+    isLoading: isLoadingStrategies,
+    error: strategiesError,
+  } = useReadContracts({
+    contracts: strategyIds.map((id) => ({
+      address: CONTRACTS[arbitrumSepolia.id].StrategyManager,
+      abi: StrategyManagerABI,
+      functionName: "strategies",
+      args: [BigInt(id)],
+      chainId: arbitrumSepolia.id,
+    })),
+  });
 
   // Transform the data into a more usable format
   const strategies: Strategy[] =
@@ -85,5 +92,7 @@ export function useStrategies() {
     strategies,
     isLoading: isLoadingCount || isLoadingStrategies,
     strategyCount: nextStrategyId ? Number(nextStrategyId) - 1 : 0,
+    error: countError || strategiesError,
+    hasError: !!(countError || strategiesError),
   };
 }

@@ -95,7 +95,7 @@ function StrategyRow({
 }
 
 export function StrategyTable() {
-  const { strategies, isLoading, strategyCount } = useStrategies();
+  const { strategies, isLoading, strategyCount, error, hasError } = useStrategies();
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
 
   if (isLoading) {
@@ -113,6 +113,39 @@ export function StrategyTable() {
     );
   }
 
+  // Error state - contract read failed
+  if (hasError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Strategies</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 space-y-4">
+            <div className="text-center">
+              <p className="text-destructive font-semibold mb-2">
+                Failed to load strategies
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {error?.message || "Unknown error"}
+              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Possible issues:</p>
+                <ul className="list-disc list-inside">
+                  <li>Wrong contract address</li>
+                  <li>Wrong network (should be Arbitrum Sepolia)</li>
+                  <li>RPC connection issue</li>
+                  <li>Contract not deployed</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Empty state - contract read succeeded but no strategies
   if (strategyCount === 0) {
     return (
       <Card>
@@ -121,9 +154,14 @@ export function StrategyTable() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <p className="text-muted-foreground">
-              No strategies available yet. Check back soon!
-            </p>
+            <div className="text-center">
+              <p className="text-muted-foreground mb-2">
+                No strategies available yet. Check back soon!
+              </p>
+              <p className="text-xs text-muted-foreground">
+                (Contract is readable but nextStrategyId = 1)
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
