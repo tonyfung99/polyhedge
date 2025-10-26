@@ -29,7 +29,7 @@ export function Sidebar() {
   const { address, isConnected } = useAccount();
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 w-60 border-r bg-muted/10">
+    <div className="fixed left-0 top-0 bottom-0 w-60 border-r bg-background z-30">
       <nav className="flex flex-col h-full">
         <div className="px-4 py-4 border-b">
           <h1 className="text-2xl font-bold tracking-tight">POLYHEDGE</h1>
