@@ -643,11 +643,42 @@ class StrategyScanner:
                 )
                 self.logger.info(f"\n✅ Formed {len(opportunity_groups)} strategy groups")
                 
+                # Step 3.5: Deduplicate and cap strategies per asset
+                # Sort by total edge (best opportunities first)
+                opportunity_groups.sort(
+                    key=lambda g: sum(o['edge_percentage'] for o in g),
+                    reverse=True
+                )
+                
+                # Deduplicate by target price (keep only unique targets)
+                seen_targets = set()
+                unique_groups = []
+                
+                for group in opportunity_groups:
+                    # Get target price from first opportunity
+                    target_price = group[0].get('target_price', 0)
+                    
+                    # Skip if we've seen this target price
+                    if target_price in seen_targets:
+                        continue
+                    
+                    seen_targets.add(target_price)
+                    unique_groups.append(group)
+                
+                # Cap at max 3 strategies per asset
+                MAX_STRATEGIES_PER_ASSET = 3
+                unique_groups = unique_groups[:MAX_STRATEGIES_PER_ASSET]
+                
+                self.logger.info(
+                    f"📊 After deduplication and capping: {len(unique_groups)} unique strategies "
+                    f"(max {MAX_STRATEGIES_PER_ASSET} per asset)"
+                )
+                
                 # Step 4: Construct and deploy strategies
                 net_amount_usdc = 1000  # Default for strategy construction
                 strategy_id_start = 1
                 
-                for group_idx, opportunity_group in enumerate(opportunity_groups):
+                for group_idx, opportunity_group in enumerate(unique_groups):
                     strategy_id = strategy_id_start + group_idx
                     
                     self.logger.info(f"\n🏗️  Constructing strategy {strategy_id}...")
