@@ -15,15 +15,12 @@ GET https://clob.polymarket.com/markets/{marketId}
 ### Request
 
 ```typescript
-const response = await fetch(
-  `${this.config.polymarketHost}/markets/${marketId}`,
-  {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-    },
-  }
-);
+const response = await fetch(`${this.config.polymarketHost}/markets/${marketId}`, {
+  method: "GET",
+  headers: {
+    Accept: "application/json",
+  },
+});
 ```
 
 ### Response Parsing
@@ -53,7 +50,7 @@ The function handles multiple timestamp formats from the Polymarket API:
 Based on the Python implementation in:
 
 ```
-packages/python/scanner/bridge_polymarket_client.py
+packages/python/scanner/polymarket_client.py
 ```
 
 Key similarities:

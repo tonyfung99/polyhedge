@@ -1,0 +1,902 @@
+{
+  "address": "0x3aC4b6c3cA4EbE90142CDBBa66326A137f196886",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_gmxExchangeRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_gmxRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_usdc",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "realizedPnL",
+          "type": "uint256"
+        }
+      ],
+      "name": "HedgeOrderClosed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "asset",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "isLong",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "gmxOrderKey",
+          "type": "bytes32"
+        }
+      ],
+      "name": "HedgeOrderCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "gmxOrderKey",
+          "type": "bytes32"
+        }
+      ],
+      "name": "HedgeOrderExecuted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "MessageReceived",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "assetMarkets",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "int256",
+          "name": "realizedPnL",
+          "type": "int256"
+        }
+      ],
+      "name": "closeHedgeOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "asset",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isLong",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxSlippageBps",
+          "type": "uint256"
+        }
+      ],
+      "name": "createHedgeOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getHedgeOrder",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "strategyId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "asset",
+              "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "isLong",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxSlippageBps",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "executed",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "gmxOrderKey",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct HedgeExecutor.HedgeOrder",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "gmxOrderKey",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getStrategyIdFromGMXOrder",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gmxExchangeRouter",
+      "outputs": [
+        {
+          "internalType": "contract IGMXExchangeRouter",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "gmxKeyToStrategyId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gmxRouter",
+      "outputs": [
+        {
+          "internalType": "contract IGMXRouter",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "hedgeOrders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "asset",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isLong",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxSlippageBps",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "executed",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "gmxOrderKey",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "strategyId",
+          "type": "uint256"
+        }
+      ],
+      "name": "isOrderExecuted",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "ordersClosed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "asset",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "marketAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setAssetMarket",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_strategyManager",
+          "type": "address"
+        }
+      ],
+      "name": "setStrategyManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "strategyManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdc",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawUSDC",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xe07ea4ac5e03c648d34bee313753631302c5263292468400613394ee8d27acea",
+  "receipt": {
+    "to": null,
+    "from": "0xe3b11134b224Df56CCc0f8EB40Df2ccb0C91d47d",
+    "contractAddress": "0x3aC4b6c3cA4EbE90142CDBBa66326A137f196886",
+    "transactionIndex": 1,
+    "gasUsed": "1459156",
+    "logsBloom": "0x00000000000000000000000000000000000000000000008000800000000000000100000000000000000000000000000000800000000000000000000000000000000000000000000000000000100000000011000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xda88f57aca40a6c78ff4de40154d71e3f2c520a641bf4d4d18fd80ece24bad92",
+    "transactionHash": "0xe07ea4ac5e03c648d34bee313753631302c5263292468400613394ee8d27acea",
+    "logs": [
+      {
+        "transactionIndex": 1,
+        "blockNumber": 393625985,
+        "transactionHash": "0xe07ea4ac5e03c648d34bee313753631302c5263292468400613394ee8d27acea",
+        "address": "0x3aC4b6c3cA4EbE90142CDBBa66326A137f196886",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000e3b11134b224df56ccc0f8eb40df2ccb0c91d47d"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0xda88f57aca40a6c78ff4de40154d71e3f2c520a641bf4d4d18fd80ece24bad92"
+      }
+    ],
+    "blockNumber": 393625985,
+    "cumulativeGasUsed": "1459156",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x87d66368cD08a7Ca42252f5ab44B2fb6d1Fb8d15",
+    "0x7452c558d45f8afC8c83dAe62C3f8A5BE19c71f6",
+    "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "c3577f8a62d91f64f16a0a47ceb80659",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_gmxExchangeRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_gmxRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_usdc\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"realizedPnL\",\"type\":\"uint256\"}],\"name\":\"HedgeOrderClosed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"asset\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"isLong\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"gmxOrderKey\",\"type\":\"bytes32\"}],\"name\":\"HedgeOrderCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"gmxOrderKey\",\"type\":\"bytes32\"}],\"name\":\"HedgeOrderExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"MessageReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"assetMarkets\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"realizedPnL\",\"type\":\"int256\"}],\"name\":\"closeHedgeOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"asset\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"isLong\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxSlippageBps\",\"type\":\"uint256\"}],\"name\":\"createHedgeOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"}],\"name\":\"getHedgeOrder\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"asset\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"isLong\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxSlippageBps\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"executed\",\"type\":\"bool\"},{\"internalType\":\"bytes32\",\"name\":\"gmxOrderKey\",\"type\":\"bytes32\"}],\"internalType\":\"struct HedgeExecutor.HedgeOrder\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"gmxOrderKey\",\"type\":\"bytes32\"}],\"name\":\"getStrategyIdFromGMXOrder\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"gmxExchangeRouter\",\"outputs\":[{\"internalType\":\"contract IGMXExchangeRouter\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"gmxKeyToStrategyId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"gmxRouter\",\"outputs\":[{\"internalType\":\"contract IGMXRouter\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"hedgeOrders\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"asset\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"isLong\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxSlippageBps\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"executed\",\"type\":\"bool\"},{\"internalType\":\"bytes32\",\"name\":\"gmxOrderKey\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"strategyId\",\"type\":\"uint256\"}],\"name\":\"isOrderExecuted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ordersClosed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"asset\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"marketAddress\",\"type\":\"address\"}],\"name\":\"setAssetMarket\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_strategyManager\",\"type\":\"address\"}],\"name\":\"setStrategyManager\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"strategyManager\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"usdc\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"withdrawUSDC\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"errors\":{\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}],\"ReentrancyGuardReentrantCall()\":[{\"details\":\"Unauthorized reentrant call.\"}]},\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"HedgeExecutor\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"closeHedgeOrder(uint256,int256)\":{\"notice\":\"Close hedge order at maturity         Called by backend/bridge when strategy matures.         Submits a close/reduce order to GMX\"},\"createHedgeOrder(uint256,address,string,bool,uint256,uint256)\":{\"notice\":\"Receive hedge order from StrategyManager and execute it on GMX         Can only be called by StrategyManager\"},\"getHedgeOrder(uint256)\":{\"notice\":\"Get hedge order details\"},\"getStrategyIdFromGMXOrder(bytes32)\":{\"notice\":\"Get strategy ID from GMX order key (for settlement tracking)\"},\"isOrderExecuted(uint256)\":{\"notice\":\"Check if a hedge order has been executed\"},\"setAssetMarket(string,address)\":{\"notice\":\"Configure market addresses for assets         Maps asset symbols (e.g., \\\"BTC\\\", \\\"ETH\\\") to GMX market addresses\"},\"setStrategyManager(address)\":{\"notice\":\"Set StrategyManager address (can only be called once by owner)\"},\"withdrawUSDC(uint256)\":{\"notice\":\"Emergency withdrawal of USDC (owner only)\"}},\"notice\":\"Executes hedge orders on GMX (Arbitrum).         Receives cross-chain messages from StrategyManager (Polygon) via LayerZero.         Places perpetual orders directly on GMX on-chain.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/HedgeExecutor.sol\":\"HedgeExecutor\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * The initial owner is set to the address provided by the deployer. This can\\n * later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    /**\\n     * @dev The caller account is not authorized to perform an operation.\\n     */\\n    error OwnableUnauthorizedAccount(address account);\\n\\n    /**\\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\\n     */\\n    error OwnableInvalidOwner(address owner);\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\\n     */\\n    constructor(address initialOwner) {\\n        if (initialOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(initialOwner);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        _checkOwner();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if the sender is not the owner.\\n     */\\n    function _checkOwner() internal view virtual {\\n        if (owner() != _msgSender()) {\\n            revert OwnableUnauthorizedAccount(_msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby disabling any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        if (newOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the value of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the value of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\\n     * allowance mechanism. `value` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\\n}\\n\",\"keccak256\":\"0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (utils/ReentrancyGuard.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant NOT_ENTERED = 1;\\n    uint256 private constant ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    /**\\n     * @dev Unauthorized reentrant call.\\n     */\\n    error ReentrancyGuardReentrantCall();\\n\\n    constructor() {\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and making it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        _nonReentrantBefore();\\n        _;\\n        _nonReentrantAfter();\\n    }\\n\\n    function _nonReentrantBefore() private {\\n        // On the first call to nonReentrant, _status will be NOT_ENTERED\\n        if (_status == ENTERED) {\\n            revert ReentrancyGuardReentrantCall();\\n        }\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = ENTERED;\\n    }\\n\\n    function _nonReentrantAfter() private {\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Returns true if the reentrancy guard is currently set to \\\"entered\\\", which indicates there is a\\n     * `nonReentrant` function in the call stack.\\n     */\\n    function _reentrancyGuardEntered() internal view returns (bool) {\\n        return _status == ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0xf980daa263b661ab8ddee7d4fd833c7da7e7995e2c359ff1f17e67e4112f2236\",\"license\":\"MIT\"},\"contracts/HedgeExecutor.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.20;\\n\\nimport { Ownable } from \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport { IERC20 } from \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport { ReentrancyGuard } from \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\n\\n// GMX V2 Interfaces\\ninterface IGMXExchangeRouter {\\n    function createOrder(\\n        address account,\\n        address[] calldata addressItems,\\n        uint256[] calldata uintItems,\\n        bytes32[] calldata bytesDataItems,\\n        bytes calldata data\\n    ) external payable returns (bytes32);\\n}\\n\\ninterface IGMXRouter {\\n    function approvePlugin(address plugin) external;\\n\\n    function plugin() external view returns (address);\\n}\\n\\ninterface IGMXOrderHandler {\\n    function executeOrder(bytes32 key, address keeper) external;\\n}\\n\\n/**\\n * @title HedgeExecutor\\n * @notice Executes hedge orders on GMX (Arbitrum).\\n *         Receives cross-chain messages from StrategyManager (Polygon) via LayerZero.\\n *         Places perpetual orders directly on GMX on-chain.\\n */\\ncontract HedgeExecutor is Ownable, ReentrancyGuard {\\n    struct HedgeOrder {\\n        uint256 strategyId;\\n        address user;\\n        string asset; // e.g., \\\"BTC\\\", \\\"ETH\\\"\\n        bool isLong;\\n        uint256 amount; // USDC amount\\n        uint256 maxSlippageBps;\\n        bool executed;\\n        bytes32 gmxOrderKey;\\n    }\\n\\n    // strategyId => HedgeOrder\\n    mapping(uint256 => HedgeOrder) public hedgeOrders;\\n    mapping(uint256 => bool) public ordersClosed;\\n    mapping(bytes32 => uint256) public gmxKeyToStrategyId; // GMX order key => strategy ID\\n\\n    event HedgeOrderCreated(\\n        uint256 indexed strategyId,\\n        address indexed user,\\n        string asset,\\n        bool isLong,\\n        uint256 amount,\\n        bytes32 gmxOrderKey\\n    );\\n    event HedgeOrderClosed(uint256 indexed strategyId, uint256 realizedPnL);\\n    event MessageReceived(uint256 indexed strategyId, address indexed user);\\n    event HedgeOrderExecuted(uint256 indexed strategyId, bytes32 gmxOrderKey);\\n\\n    address public strategyManager;\\n\\n    // GMX contracts on Arbitrum\\n    IGMXExchangeRouter public gmxExchangeRouter;\\n    IGMXRouter public gmxRouter;\\n    IERC20 public usdc;\\n\\n    // Market addresses for GMX (index token to market address mapping)\\n    mapping(string => address) public assetMarkets;\\n\\n    constructor(address _gmxExchangeRouter, address _gmxRouter, address _usdc) Ownable(msg.sender) {\\n        require(_gmxExchangeRouter != address(0), \\\"invalid GMX router\\\");\\n        require(_gmxRouter != address(0), \\\"invalid GMX router\\\");\\n        require(_usdc != address(0), \\\"invalid USDC\\\");\\n\\n        gmxExchangeRouter = IGMXExchangeRouter(_gmxExchangeRouter);\\n        gmxRouter = IGMXRouter(_gmxRouter);\\n        usdc = IERC20(_usdc);\\n    }\\n\\n    /**\\n     * @notice Set StrategyManager address (can only be called once by owner)\\n     */\\n    function setStrategyManager(address _strategyManager) external onlyOwner {\\n        require(_strategyManager != address(0), \\\"invalid address\\\");\\n        require(strategyManager == address(0), \\\"already set\\\");\\n        strategyManager = _strategyManager;\\n    }\\n\\n    /**\\n     * @notice Configure market addresses for assets\\n     *         Maps asset symbols (e.g., \\\"BTC\\\", \\\"ETH\\\") to GMX market addresses\\n     */\\n    function setAssetMarket(string calldata asset, address marketAddress) external onlyOwner {\\n        require(marketAddress != address(0), \\\"invalid market\\\");\\n        assetMarkets[asset] = marketAddress;\\n    }\\n\\n    /**\\n     * @notice Receive hedge order from StrategyManager and execute it on GMX\\n     *         Can only be called by StrategyManager\\n     */\\n    function createHedgeOrder(\\n        uint256 strategyId,\\n        address user,\\n        string calldata asset,\\n        bool isLong,\\n        uint256 amount,\\n        uint256 maxSlippageBps\\n    ) external nonReentrant {\\n        require(msg.sender == strategyManager, \\\"only StrategyManager\\\");\\n        require(amount > 0, \\\"amount=0\\\");\\n        require(assetMarkets[asset] != address(0), \\\"asset not supported\\\");\\n\\n        // Check USDC balance and allowance\\n        require(usdc.balanceOf(address(this)) >= amount, \\\"insufficient USDC balance\\\");\\n\\n        // Create the GMX order\\n        bytes32 gmxOrderKey = _executeGMXOrder(asset, isLong, amount, maxSlippageBps);\\n\\n        // Store hedge order details\\n        hedgeOrders[strategyId] = HedgeOrder({\\n            strategyId: strategyId,\\n            user: user,\\n            asset: asset,\\n            isLong: isLong,\\n            amount: amount,\\n            maxSlippageBps: maxSlippageBps,\\n            executed: true,\\n            gmxOrderKey: gmxOrderKey\\n        });\\n\\n        // Map GMX order key back to strategy for settlement\\n        gmxKeyToStrategyId[gmxOrderKey] = strategyId;\\n\\n        emit HedgeOrderCreated(strategyId, user, asset, isLong, amount, gmxOrderKey);\\n        emit MessageReceived(strategyId, user);\\n        emit HedgeOrderExecuted(strategyId, gmxOrderKey);\\n    }\\n\\n    /**\\n     * @notice Internal function to execute a GMX perpetual order\\n     *         Constructs the necessary parameters and calls GMXExchangeRouter\\n     */\\n    function _executeGMXOrder(\\n        string calldata asset,\\n        bool isLong,\\n        uint256 amount,\\n        uint256 maxSlippageBps\\n    ) internal returns (bytes32 orderKey) {\\n        address marketAddress = assetMarkets[asset];\\n\\n        // Approve GMX to spend USDC\\n        usdc.approve(address(gmxRouter), amount);\\n\\n        // Build order parameters for GMX V2\\n        // This is a simplified version - adjust based on actual GMX V2 order structure\\n        address[] memory addressItems = new address[](4);\\n        addressItems[0] = marketAddress; // market\\n        addressItems[1] = msg.sender; // receiver (StrategyManager)\\n        addressItems[2] = address(usdc); // initialCollateralToken\\n        addressItems[3] = address(0); // swapPath (none for direct orders)\\n\\n        uint256[] memory uintItems = new uint256[](6);\\n        uintItems[0] = amount; // sizeDeltaUsd (in USDC value)\\n        uintItems[1] = amount; // initialCollateralDeltaAmount\\n        uintItems[2] = 0; // triggerPrice\\n        uintItems[3] = maxSlippageBps; // acceptablePrice / slippage\\n        uintItems[4] = 0; // executionFee (handled separately)\\n        uintItems[5] = isLong ? 1 : 0; // orderType (1 = MarketIncrease for longs)\\n\\n        bytes32[] memory bytesDataItems = new bytes32[](0);\\n\\n        // Create order via GMX ExchangeRouter\\n        orderKey = gmxExchangeRouter.createOrder(address(this), addressItems, uintItems, bytesDataItems, \\\"\\\");\\n\\n        return orderKey;\\n    }\\n\\n    /**\\n     * @notice Close hedge order at maturity\\n     *         Called by backend/bridge when strategy matures.\\n     *         Submits a close/reduce order to GMX\\n     */\\n    function closeHedgeOrder(uint256 strategyId, int256 realizedPnL) external nonReentrant onlyOwner {\\n        require(!ordersClosed[strategyId], \\\"already closed\\\");\\n\\n        HedgeOrder storage hedge = hedgeOrders[strategyId];\\n        require(hedge.amount > 0, \\\"order not found\\\");\\n\\n        // TODO: Call GMX.closePosition() via ExchangeRouter\\n        // For now, mark as closed\\n        ordersClosed[strategyId] = true;\\n        emit HedgeOrderClosed(strategyId, uint256(realizedPnL));\\n    }\\n\\n    /**\\n     * @notice Get hedge order details\\n     */\\n    function getHedgeOrder(uint256 strategyId) external view returns (HedgeOrder memory) {\\n        return hedgeOrders[strategyId];\\n    }\\n\\n    /**\\n     * @notice Get strategy ID from GMX order key (for settlement tracking)\\n     */\\n    function getStrategyIdFromGMXOrder(bytes32 gmxOrderKey) external view returns (uint256) {\\n        return gmxKeyToStrategyId[gmxOrderKey];\\n    }\\n\\n    /**\\n     * @notice Check if a hedge order has been executed\\n     */\\n    function isOrderExecuted(uint256 strategyId) external view returns (bool) {\\n        return hedgeOrders[strategyId].executed;\\n    }\\n\\n    /**\\n     * @notice Emergency withdrawal of USDC (owner only)\\n     */\\n    function withdrawUSDC(uint256 amount) external onlyOwner {\\n        require(usdc.transfer(msg.sender, amount), \\\"transfer failed\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x128bad65c158f5494f434f1c43dd08cd40ae29d7b328d305b70853ef5bfc45a2\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b5060405162001948380380620019488339810160408190526200003491620001fd565b33806200005c57604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b620000678162000190565b50600180556001600160a01b038316620000b95760405162461bcd60e51b815260206004820152601260248201527134b73b30b634b21023a6ac103937baba32b960711b604482015260640162000053565b6001600160a01b038216620001065760405162461bcd60e51b815260206004820152601260248201527134b73b30b634b21023a6ac103937baba32b960711b604482015260640162000053565b6001600160a01b0381166200014d5760405162461bcd60e51b815260206004820152600c60248201526b696e76616c6964205553444360a01b604482015260640162000053565b600680546001600160a01b039485166001600160a01b03199182161790915560078054938516938216939093179092556008805491909316911617905562000247565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b80516001600160a01b0381168114620001f857600080fd5b919050565b6000806000606084860312156200021357600080fd5b6200021e84620001e0565b92506200022e60208501620001e0565b91506200023e60408501620001e0565b90509250925092565b6116f180620002576000396000f3fe608060405234801561001057600080fd5b50600436106101215760003560e01c806385f3bf26116100ad578063db81f99b11610071578063db81f99b146102c9578063e85499cf146102dc578063efc738b5146102ef578063f2fde38b1461030f578063fee5bbb11461032257600080fd5b806385f3bf26146102595780638da5cb5b1461026c578063c7ed27551461027d578063cfd2d65c14610290578063d1018a28146102b657600080fd5b80634a4e55c2116100f45780634a4e55c2146101c85780635c966646146101fb578063634e3180146102105780636ce675bc14610223578063715018a61461025157600080fd5b80630a0d6f6a1461012657806321da0e7d1461015657806339b70e38146101a25780633e413bee146101b5575b600080fd5b61013961013436600461106f565b610342565b60405161014d9897969594939291906110ce565b60405180910390f35b61018a61016436600461113d565b80516020818301810180516009825292820191909301209152546001600160a01b031681565b6040516001600160a01b03909116815260200161014d565b60055461018a906001600160a01b031681565b60085461018a906001600160a01b031681565b6101eb6101d636600461106f565b60036020526000908152604090205460ff1681565b604051901515815260200161014d565b61020e61020936600461120a565b61041e565b005b60075461018a906001600160a01b031681565b61024361023136600461106f565b60009081526004602052604090205490565b60405190815260200161014d565b61020e6104dc565b61020e61026736600461122c565b6104f0565b6000546001600160a01b031661018a565b61020e61028b3660046112a5565b610604565b6101eb61029e36600461106f565b60009081526002602052604090206006015460ff1690565b60065461018a906001600160a01b031681565b61020e6102d736600461106f565b6109dc565b61020e6102ea366004611329565b610a9a565b6102436102fd36600461106f565b60046020526000908152604090205481565b61020e61031d36600461120a565b610b30565b61033561033036600461106f565b610b6b565b60405161014d919061137d565b600260208190526000918252604090912080546001820154928201805491936001600160a01b0316929161037590611401565b80601f01602080910402602001604051908101604052809291908181526020018280546103a190611401565b80156103ee5780601f106103c3576101008083540402835291602001916103ee565b820191906000526020600020905b8154815290600101906020018083116103d157829003601f168201915b505050506003830154600484015460058501546006860154600790960154949560ff938416959294509092169088565b610426610cb9565b6001600160a01b0381166104735760405162461bcd60e51b815260206004820152600f60248201526e696e76616c6964206164647265737360881b60448201526064015b60405180910390fd5b6005546001600160a01b0316156104ba5760405162461bcd60e51b815260206004820152600b60248201526a185b1c9958591e481cd95d60aa1b604482015260640161046a565b600580546001600160a01b0319166001600160a01b0392909216919091179055565b6104e4610cb9565b6104ee6000610ce6565b565b6104f8610d36565b610500610cb9565b60008281526003602052604090205460ff16156105505760405162461bcd60e51b815260206004820152600e60248201526d185b1c9958591e4818db1bdcd95960921b604482015260640161046a565b600082815260026020526040902060048101546105a15760405162461bcd60e51b815260206004820152600f60248201526e1bdc99195c881b9bdd08199bdd5b99608a1b604482015260640161046a565b60008381526003602052604090819020805460ff191660011790555183907f5d66ae68f5106f2b5c2f8f7556f23b6c50ba45d0ae568322da005719e23babfa906105ee9085815260200190565b60405180910390a25061060060018055565b5050565b61060c610d36565b6005546001600160a01b0316331461065d5760405162461bcd60e51b815260206004820152601460248201527337b7363c9029ba3930ba32b3bca6b0b730b3b2b960611b604482015260640161046a565b600082116106985760405162461bcd60e51b81526020600482015260086024820152670616d6f756e743d360c41b604482015260640161046a565b60006001600160a01b0316600986866040516106b592919061143b565b908152604051908190036020019020546001600160a01b0316036107115760405162461bcd60e51b8152602060048201526013602482015272185cdcd95d081b9bdd081cdd5c1c1bdc9d1959606a1b604482015260640161046a565b6008546040516370a0823160e01b815230600482015283916001600160a01b0316906370a0823190602401602060405180830381865afa158015610759573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061077d919061144b565b10156107cb5760405162461bcd60e51b815260206004820152601960248201527f696e73756666696369656e7420555344432062616c616e636500000000000000604482015260640161046a565b60006107da8686868686610d60565b9050604051806101000160405280898152602001886001600160a01b0316815260200187878080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525093855250505086151560208084019190915260408084018890526060840187905260016080850181905260a09094018690528c8352600280835292819020855181559185015193820180546001600160a01b0319166001600160a01b039095169490941790935591830151908201906108a890826114b3565b50606082015160038201805491151560ff19928316179055608083015160048084019190915560a0840151600584015560c0840151600684018054911515919093161790915560e0909201516007909101556000828152602091909152604090819020899055516001600160a01b0388169089907f5929ba0f3e6240f7f93ffc97de3db6e9a1187b6e3894f731f8af6881739d3b4790610951908a908a908a908a908990611573565b60405180910390a36040516001600160a01b0388169089907fcefda8bdad782845bf9f9d965e45cd12b189b1769197a0a3de383270fff536eb90600090a3877f32da0b02328467aeeede7b91283b2e754469cd66d0263d6151cbb60bbc344132826040516109c191815260200190565b60405180910390a2506109d360018055565b50505050505050565b6109e4610cb9565b60085460405163a9059cbb60e01b8152336004820152602481018390526001600160a01b039091169063a9059cbb906044016020604051808303816000875af1158015610a35573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a5991906115b8565b610a975760405162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c8819985a5b1959608a1b604482015260640161046a565b50565b610aa2610cb9565b6001600160a01b038116610ae95760405162461bcd60e51b815260206004820152600e60248201526d1a5b9d985b1a59081b585c9ad95d60921b604482015260640161046a565b8060098484604051610afc92919061143b565b90815260405190819003602001902080546001600160a01b03929092166001600160a01b0319909216919091179055505050565b610b38610cb9565b6001600160a01b038116610b6257604051631e4fbdf760e01b81526000600482015260240161046a565b610a9781610ce6565b604080516101008101825260008082526020820181905260609282018390529181018290526080810182905260a0810182905260c0810182905260e08101919091526000828152600260208181526040928390208351610100810185528154815260018201546001600160a01b03169281019290925291820180549193840191610bf490611401565b80601f0160208091040260200160405190810160405280929190818152602001828054610c2090611401565b8015610c6d5780601f10610c4257610100808354040283529160200191610c6d565b820191906000526020600020905b815481529060010190602001808311610c5057829003601f168201915b5050509183525050600382015460ff9081161515602083015260048301546040830152600583015460608301526006830154161515608082015260079091015460a09091015292915050565b6000546001600160a01b031633146104ee5760405163118cdaa760e01b815233600482015260240161046a565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b600260015403610d5957604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b60008060098787604051610d7592919061143b565b9081526040519081900360200181205460085460075463095ea7b360e01b84526001600160a01b039081166004850152602484018890529182169350169063095ea7b3906044016020604051808303816000875af1158015610ddb573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610dff91906115b8565b5060408051600480825260a08201909252600091602082016080803683370190505090508181600081518110610e3757610e376115d5565b60200260200101906001600160a01b031690816001600160a01b0316815250503381600181518110610e6b57610e6b6115d5565b6001600160a01b039283166020918202929092010152600854825191169082906002908110610e9c57610e9c6115d5565b60200260200101906001600160a01b031690816001600160a01b031681525050600081600381518110610ed157610ed16115d5565b6001600160a01b039290921660209283029190910182015260408051600680825260e08201909252600092909190820160c0803683370190505090508581600081518110610f2157610f216115d5565b6020026020010181815250508581600181518110610f4157610f416115d5565b602002602001018181525050600081600281518110610f6257610f626115d5565b6020026020010181815250508481600381518110610f8257610f826115d5565b602002602001018181525050600081600481518110610fa357610fa36115d5565b60200260200101818152505086610fbb576000610fbe565b60015b60ff1681600581518110610fd457610fd46115d5565b602090810291909101810191909152604080516000815291820190819052600654639c1f694360e01b9091526001600160a01b0316639c1f694361101e3086868660248101611626565b6020604051808303816000875af115801561103d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611061919061144b565b9a9950505050505050505050565b60006020828403121561108157600080fd5b5035919050565b6000815180845260005b818110156110ae57602081850181015186830182015201611092565b506000602082860101526020601f19601f83011685010191505092915050565b8881526001600160a01b0388166020820152610100604082018190526000906110f98382018a611088565b97151560608401525050608081019490945260a0840192909252151560c083015260e0909101529392505050565b634e487b7160e01b600052604160045260246000fd5b60006020828403121561114f57600080fd5b813567ffffffffffffffff8082111561116757600080fd5b818401915084601f83011261117b57600080fd5b81358181111561118d5761118d611127565b604051601f8201601f19908116603f011681019083821181831017156111b5576111b5611127565b816040528281528760208487010111156111ce57600080fd5b826020860160208301376000928101602001929092525095945050505050565b80356001600160a01b038116811461120557600080fd5b919050565b60006020828403121561121c57600080fd5b611225826111ee565b9392505050565b6000806040838503121561123f57600080fd5b50508035926020909101359150565b60008083601f84011261126057600080fd5b50813567ffffffffffffffff81111561127857600080fd5b60208301915083602082850101111561129057600080fd5b9250929050565b8015158114610a9757600080fd5b600080600080600080600060c0888a0312156112c057600080fd5b873596506112d0602089016111ee565b9550604088013567ffffffffffffffff8111156112ec57600080fd5b6112f88a828b0161124e565b909650945050606088013561130c81611297565b969995985093969295946080840135945060a09093013592915050565b60008060006040848603121561133e57600080fd5b833567ffffffffffffffff81111561135557600080fd5b6113618682870161124e565b90945092506113749050602085016111ee565b90509250925092565b602081528151602082015260018060a01b036020830151166040820152600060408301516101008060608501526113b8610120850183611088565b9150606085015115156080850152608085015160a085015260a085015160c085015260c08501516113ed60e086018215159052565b5060e0949094015192909301919091525090565b600181811c9082168061141557607f821691505b60208210810361143557634e487b7160e01b600052602260045260246000fd5b50919050565b8183823760009101908152919050565b60006020828403121561145d57600080fd5b5051919050565b601f8211156114ae57600081815260208120601f850160051c8101602086101561148b5750805b601f850160051c820191505b818110156114aa57828155600101611497565b5050505b505050565b815167ffffffffffffffff8111156114cd576114cd611127565b6114e1816114db8454611401565b84611464565b602080601f83116001811461151657600084156114fe5750858301515b600019600386901b1c1916600185901b1785556114aa565b600085815260208120601f198616915b8281101561154557888601518255948401946001909101908401611526565b50858210156115635787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b60808152846080820152848660a0830137600060a0868301810191909152931515602082015260408101929092526060820152601f909201601f191690910101919050565b6000602082840312156115ca57600080fd5b815161122581611297565b634e487b7160e01b600052603260045260246000fd5b600081518084526020808501945080840160005b8381101561161b578151875295820195908201906001016115ff565b509495945050505050565b6001600160a01b03858116825260a0602080840182905286519184018290526000928782019290919060c0860190855b81811015611674578551851683529483019491830191600101611656565b5050858103604087015261168881896115eb565b935050848303606086015261169d83876115eb565b8581036080909601959095526000855290930197965050505050505056fea2646970667358221220339412ea24c7060981480d11836e2da6db387bc64d5a17e24f566780a9ea37c464736f6c63430008140033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101215760003560e01c806385f3bf26116100ad578063db81f99b11610071578063db81f99b146102c9578063e85499cf146102dc578063efc738b5146102ef578063f2fde38b1461030f578063fee5bbb11461032257600080fd5b806385f3bf26146102595780638da5cb5b1461026c578063c7ed27551461027d578063cfd2d65c14610290578063d1018a28146102b657600080fd5b80634a4e55c2116100f45780634a4e55c2146101c85780635c966646146101fb578063634e3180146102105780636ce675bc14610223578063715018a61461025157600080fd5b80630a0d6f6a1461012657806321da0e7d1461015657806339b70e38146101a25780633e413bee146101b5575b600080fd5b61013961013436600461106f565b610342565b60405161014d9897969594939291906110ce565b60405180910390f35b61018a61016436600461113d565b80516020818301810180516009825292820191909301209152546001600160a01b031681565b6040516001600160a01b03909116815260200161014d565b60055461018a906001600160a01b031681565b60085461018a906001600160a01b031681565b6101eb6101d636600461106f565b60036020526000908152604090205460ff1681565b604051901515815260200161014d565b61020e61020936600461120a565b61041e565b005b60075461018a906001600160a01b031681565b61024361023136600461106f565b60009081526004602052604090205490565b60405190815260200161014d565b61020e6104dc565b61020e61026736600461122c565b6104f0565b6000546001600160a01b031661018a565b61020e61028b3660046112a5565b610604565b6101eb61029e36600461106f565b60009081526002602052604090206006015460ff1690565b60065461018a906001600160a01b031681565b61020e6102d736600461106f565b6109dc565b61020e6102ea366004611329565b610a9a565b6102436102fd36600461106f565b60046020526000908152604090205481565b61020e61031d36600461120a565b610b30565b61033561033036600461106f565b610b6b565b60405161014d919061137d565b600260208190526000918252604090912080546001820154928201805491936001600160a01b0316929161037590611401565b80601f01602080910402602001604051908101604052809291908181526020018280546103a190611401565b80156103ee5780601f106103c3576101008083540402835291602001916103ee565b820191906000526020600020905b8154815290600101906020018083116103d157829003601f168201915b505050506003830154600484015460058501546006860154600790960154949560ff938416959294509092169088565b610426610cb9565b6001600160a01b0381166104735760405162461bcd60e51b815260206004820152600f60248201526e696e76616c6964206164647265737360881b60448201526064015b60405180910390fd5b6005546001600160a01b0316156104ba5760405162461bcd60e51b815260206004820152600b60248201526a185b1c9958591e481cd95d60aa1b604482015260640161046a565b600580546001600160a01b0319166001600160a01b0392909216919091179055565b6104e4610cb9565b6104ee6000610ce6565b565b6104f8610d36565b610500610cb9565b60008281526003602052604090205460ff16156105505760405162461bcd60e51b815260206004820152600e60248201526d185b1c9958591e4818db1bdcd95960921b604482015260640161046a565b600082815260026020526040902060048101546105a15760405162461bcd60e51b815260206004820152600f60248201526e1bdc99195c881b9bdd08199bdd5b99608a1b604482015260640161046a565b60008381526003602052604090819020805460ff191660011790555183907f5d66ae68f5106f2b5c2f8f7556f23b6c50ba45d0ae568322da005719e23babfa906105ee9085815260200190565b60405180910390a25061060060018055565b5050565b61060c610d36565b6005546001600160a01b0316331461065d5760405162461bcd60e51b815260206004820152601460248201527337b7363c9029ba3930ba32b3bca6b0b730b3b2b960611b604482015260640161046a565b600082116106985760405162461bcd60e51b81526020600482015260086024820152670616d6f756e743d360c41b604482015260640161046a565b60006001600160a01b0316600986866040516106b592919061143b565b908152604051908190036020019020546001600160a01b0316036107115760405162461bcd60e51b8152602060048201526013602482015272185cdcd95d081b9bdd081cdd5c1c1bdc9d1959606a1b604482015260640161046a565b6008546040516370a0823160e01b815230600482015283916001600160a01b0316906370a0823190602401602060405180830381865afa158015610759573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061077d919061144b565b10156107cb5760405162461bcd60e51b815260206004820152601960248201527f696e73756666696369656e7420555344432062616c616e636500000000000000604482015260640161046a565b60006107da8686868686610d60565b9050604051806101000160405280898152602001886001600160a01b0316815260200187878080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525093855250505086151560208084019190915260408084018890526060840187905260016080850181905260a09094018690528c8352600280835292819020855181559185015193820180546001600160a01b0319166001600160a01b039095169490941790935591830151908201906108a890826114b3565b50606082015160038201805491151560ff19928316179055608083015160048084019190915560a0840151600584015560c0840151600684018054911515919093161790915560e0909201516007909101556000828152602091909152604090819020899055516001600160a01b0388169089907f5929ba0f3e6240f7f93ffc97de3db6e9a1187b6e3894f731f8af6881739d3b4790610951908a908a908a908a908990611573565b60405180910390a36040516001600160a01b0388169089907fcefda8bdad782845bf9f9d965e45cd12b189b1769197a0a3de383270fff536eb90600090a3877f32da0b02328467aeeede7b91283b2e754469cd66d0263d6151cbb60bbc344132826040516109c191815260200190565b60405180910390a2506109d360018055565b50505050505050565b6109e4610cb9565b60085460405163a9059cbb60e01b8152336004820152602481018390526001600160a01b039091169063a9059cbb906044016020604051808303816000875af1158015610a35573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a5991906115b8565b610a975760405162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c8819985a5b1959608a1b604482015260640161046a565b50565b610aa2610cb9565b6001600160a01b038116610ae95760405162461bcd60e51b815260206004820152600e60248201526d1a5b9d985b1a59081b585c9ad95d60921b604482015260640161046a565b8060098484604051610afc92919061143b565b90815260405190819003602001902080546001600160a01b03929092166001600160a01b0319909216919091179055505050565b610b38610cb9565b6001600160a01b038116610b6257604051631e4fbdf760e01b81526000600482015260240161046a565b610a9781610ce6565b604080516101008101825260008082526020820181905260609282018390529181018290526080810182905260a0810182905260c0810182905260e08101919091526000828152600260208181526040928390208351610100810185528154815260018201546001600160a01b03169281019290925291820180549193840191610bf490611401565b80601f0160208091040260200160405190810160405280929190818152602001828054610c2090611401565b8015610c6d5780601f10610c4257610100808354040283529160200191610c6d565b820191906000526020600020905b815481529060010190602001808311610c5057829003601f168201915b5050509183525050600382015460ff9081161515602083015260048301546040830152600583015460608301526006830154161515608082015260079091015460a09091015292915050565b6000546001600160a01b031633146104ee5760405163118cdaa760e01b815233600482015260240161046a565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b600260015403610d5957604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b60008060098787604051610d7592919061143b565b9081526040519081900360200181205460085460075463095ea7b360e01b84526001600160a01b039081166004850152602484018890529182169350169063095ea7b3906044016020604051808303816000875af1158015610ddb573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610dff91906115b8565b5060408051600480825260a08201909252600091602082016080803683370190505090508181600081518110610e3757610e376115d5565b60200260200101906001600160a01b031690816001600160a01b0316815250503381600181518110610e6b57610e6b6115d5565b6001600160a01b039283166020918202929092010152600854825191169082906002908110610e9c57610e9c6115d5565b60200260200101906001600160a01b031690816001600160a01b031681525050600081600381518110610ed157610ed16115d5565b6001600160a01b039290921660209283029190910182015260408051600680825260e08201909252600092909190820160c0803683370190505090508581600081518110610f2157610f216115d5565b6020026020010181815250508581600181518110610f4157610f416115d5565b602002602001018181525050600081600281518110610f6257610f626115d5565b6020026020010181815250508481600381518110610f8257610f826115d5565b602002602001018181525050600081600481518110610fa357610fa36115d5565b60200260200101818152505086610fbb576000610fbe565b60015b60ff1681600581518110610fd457610fd46115d5565b602090810291909101810191909152604080516000815291820190819052600654639c1f694360e01b9091526001600160a01b0316639c1f694361101e3086868660248101611626565b6020604051808303816000875af115801561103d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611061919061144b565b9a9950505050505050505050565b60006020828403121561108157600080fd5b5035919050565b6000815180845260005b818110156110ae57602081850181015186830182015201611092565b506000602082860101526020601f19601f83011685010191505092915050565b8881526001600160a01b0388166020820152610100604082018190526000906110f98382018a611088565b97151560608401525050608081019490945260a0840192909252151560c083015260e0909101529392505050565b634e487b7160e01b600052604160045260246000fd5b60006020828403121561114f57600080fd5b813567ffffffffffffffff8082111561116757600080fd5b818401915084601f83011261117b57600080fd5b81358181111561118d5761118d611127565b604051601f8201601f19908116603f011681019083821181831017156111b5576111b5611127565b816040528281528760208487010111156111ce57600080fd5b826020860160208301376000928101602001929092525095945050505050565b80356001600160a01b038116811461120557600080fd5b919050565b60006020828403121561121c57600080fd5b611225826111ee565b9392505050565b6000806040838503121561123f57600080fd5b50508035926020909101359150565b60008083601f84011261126057600080fd5b50813567ffffffffffffffff81111561127857600080fd5b60208301915083602082850101111561129057600080fd5b9250929050565b8015158114610a9757600080fd5b600080600080600080600060c0888a0312156112c057600080fd5b873596506112d0602089016111ee565b9550604088013567ffffffffffffffff8111156112ec57600080fd5b6112f88a828b0161124e565b909650945050606088013561130c81611297565b969995985093969295946080840135945060a09093013592915050565b60008060006040848603121561133e57600080fd5b833567ffffffffffffffff81111561135557600080fd5b6113618682870161124e565b90945092506113749050602085016111ee565b90509250925092565b602081528151602082015260018060a01b036020830151166040820152600060408301516101008060608501526113b8610120850183611088565b9150606085015115156080850152608085015160a085015260a085015160c085015260c08501516113ed60e086018215159052565b5060e0949094015192909301919091525090565b600181811c9082168061141557607f821691505b60208210810361143557634e487b7160e01b600052602260045260246000fd5b50919050565b8183823760009101908152919050565b60006020828403121561145d57600080fd5b5051919050565b601f8211156114ae57600081815260208120601f850160051c8101602086101561148b5750805b601f850160051c820191505b818110156114aa57828155600101611497565b5050505b505050565b815167ffffffffffffffff8111156114cd576114cd611127565b6114e1816114db8454611401565b84611464565b602080601f83116001811461151657600084156114fe5750858301515b600019600386901b1c1916600185901b1785556114aa565b600085815260208120601f198616915b8281101561154557888601518255948401946001909101908401611526565b50858210156115635787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b60808152846080820152848660a0830137600060a0868301810191909152931515602082015260408101929092526060820152601f909201601f191690910101919050565b6000602082840312156115ca57600080fd5b815161122581611297565b634e487b7160e01b600052603260045260246000fd5b600081518084526020808501945080840160005b8381101561161b578151875295820195908201906001016115ff565b509495945050505050565b6001600160a01b03858116825260a0602080840182905286519184018290526000928782019290919060c0860190855b81811015611674578551851683529483019491830191600101611656565b5050858103604087015261168881896115eb565b935050848303606086015261169d83876115eb565b8581036080909601959095526000855290930197965050505050505056fea2646970667358221220339412ea24c7060981480d11836e2da6db387bc64d5a17e24f566780a9ea37c464736f6c63430008140033",
+  "devdoc": {
+    "errors": {
+      "OwnableInvalidOwner(address)": [
+        {
+          "details": "The owner is not a valid owner account. (eg. `address(0)`)"
+        }
+      ],
+      "OwnableUnauthorizedAccount(address)": [
+        {
+          "details": "The caller account is not authorized to perform an operation."
+        }
+      ],
+      "ReentrancyGuardReentrantCall()": [
+        {
+          "details": "Unauthorized reentrant call."
+        }
+      ]
+    },
+    "kind": "dev",
+    "methods": {
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "HedgeExecutor",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "closeHedgeOrder(uint256,int256)": {
+        "notice": "Close hedge order at maturity         Called by backend/bridge when strategy matures.         Submits a close/reduce order to GMX"
+      },
+      "createHedgeOrder(uint256,address,string,bool,uint256,uint256)": {
+        "notice": "Receive hedge order from StrategyManager and execute it on GMX         Can only be called by StrategyManager"
+      },
+      "getHedgeOrder(uint256)": {
+        "notice": "Get hedge order details"
+      },
+      "getStrategyIdFromGMXOrder(bytes32)": {
+        "notice": "Get strategy ID from GMX order key (for settlement tracking)"
+      },
+      "isOrderExecuted(uint256)": {
+        "notice": "Check if a hedge order has been executed"
+      },
+      "setAssetMarket(string,address)": {
+        "notice": "Configure market addresses for assets         Maps asset symbols (e.g., \"BTC\", \"ETH\") to GMX market addresses"
+      },
+      "setStrategyManager(address)": {
+        "notice": "Set StrategyManager address (can only be called once by owner)"
+      },
+      "withdrawUSDC(uint256)": {
+        "notice": "Emergency withdrawal of USDC (owner only)"
+      }
+    },
+    "notice": "Executes hedge orders on GMX (Arbitrum).         Receives cross-chain messages from StrategyManager (Polygon) via LayerZero.         Places perpetual orders directly on GMX on-chain.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 8,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 944,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "_status",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1075,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "hedgeOrders",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_uint256,t_struct(HedgeOrder)1070_storage)"
+      },
+      {
+        "astId": 1079,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "ordersClosed",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_uint256,t_bool)"
+      },
+      {
+        "astId": 1083,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "gmxKeyToStrategyId",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_bytes32,t_uint256)"
+      },
+      {
+        "astId": 1117,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "strategyManager",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 1120,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "gmxExchangeRouter",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_contract(IGMXExchangeRouter)1029"
+      },
+      {
+        "astId": 1123,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "gmxRouter",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_contract(IGMXRouter)1040"
+      },
+      {
+        "astId": 1126,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "usdc",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_contract(IERC20)877"
+      },
+      {
+        "astId": 1130,
+        "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+        "label": "assetMarkets",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_mapping(t_string_memory_ptr,t_address)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_contract(IERC20)877": {
+        "encoding": "inplace",
+        "label": "contract IERC20",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IGMXExchangeRouter)1029": {
+        "encoding": "inplace",
+        "label": "contract IGMXExchangeRouter",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IGMXRouter)1040": {
+        "encoding": "inplace",
+        "label": "contract IGMXRouter",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_bytes32,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_string_memory_ptr,t_address)": {
+        "encoding": "mapping",
+        "key": "t_string_memory_ptr",
+        "label": "mapping(string => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_uint256,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_uint256,t_struct(HedgeOrder)1070_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct HedgeExecutor.HedgeOrder)",
+        "numberOfBytes": "32",
+        "value": "t_struct(HedgeOrder)1070_storage"
+      },
+      "t_string_memory_ptr": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_struct(HedgeOrder)1070_storage": {
+        "encoding": "inplace",
+        "label": "struct HedgeExecutor.HedgeOrder",
+        "members": [
+          {
+            "astId": 1055,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "strategyId",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1057,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "user",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address"
+          },
+          {
+            "astId": 1059,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "asset",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_string_storage"
+          },
+          {
+            "astId": 1061,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "isLong",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_bool"
+          },
+          {
+            "astId": 1063,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "amount",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1065,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "maxSlippageBps",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1067,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "executed",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_bool"
+          },
+          {
+            "astId": 1069,
+            "contract": "contracts/HedgeExecutor.sol:HedgeExecutor",
+            "label": "gmxOrderKey",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_bytes32"
+          }
+        ],
+        "numberOfBytes": "256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

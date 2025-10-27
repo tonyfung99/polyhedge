@@ -209,7 +209,7 @@ class TheoreticalPricingEngine:
                     asset, current_price, target_price, days_to_expiry, volatility
                     
         Returns:
-            List of pricing results
+            List of pricing results with original market fields preserved
         """
         results = []
         
@@ -222,7 +222,12 @@ class TheoreticalPricingEngine:
                     days_to_expiry=market['days_to_expiry'],
                     volatility=market['volatility']
                 )
-                results.append(result)
+                
+                # Preserve original market fields (market_price, no_price, etc.)
+                market_with_pricing = market.copy()
+                market_with_pricing.update(result)
+                
+                results.append(market_with_pricing)
                 
             except Exception as e:
                 logger.error(f"Error pricing market {market}: {e}")

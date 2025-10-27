@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from inefficiency_detector import InefficiencyDetector
 from pricing.theoretical_engine import TheoreticalPricingEngine
 from portfolio.position_sizer import KellyPositionSizer
-from bridge_polymarket_client import PolymarketAPIClient
+from polymarket_client import PolymarketAPIClient
 
 # Configure logging
 logging.basicConfig(
@@ -51,19 +51,35 @@ class PolymarketMarketData:
     
     async def fetch_active_markets(self, asset: str = "BTC") -> List[Dict]:
         """
-        Fetch active crypto price prediction markets from Polymarket
+        Fetch active crypto price prediction markets from Polymarket with real current prices.
         
         Args:
             asset: Asset to scan (BTC, ETH, etc.)
             
         Returns:
-            List of market data dictionaries
+            List of market data dictionaries with real current prices
         """
         try:
-            # Fetch markets using bridge's Polymarket client
-            markets = await self.api_client.get_active_crypto_price_markets(asset)
-            logger.info(f"Fetched {len(markets)} markets for {asset}")
+            # Fetch markets from Next.js endpoints
+            markets = await self.api_client.get_crypto_price_markets_from_nextjs(asset)
+            logger.info(f"Fetched {len(markets)} price markets for {asset}")
+            
+            # Fetch real current price from CoinGecko
+            current_price = await self.api_client.get_current_price(asset)
+            
+            if current_price > 0:
+                logger.info(f"✅ Fetched real current price for {asset}: ${current_price:,.2f}")
+                
+                # Inject real current price into all markets
+                for market in markets:
+                    market['current_price'] = current_price
+                
+                logger.info(f"Updated {len(markets)} markets with real current price")
+            else:
+                logger.warning(f"Could not fetch real price for {asset}, using market midpoint")
+            
             return markets
+            
         except Exception as e:
             logger.error(f"Error fetching markets: {e}")
             return []
@@ -189,8 +205,8 @@ class HedgeCalculator:
             })
             
             self.logger.info(
-                f"Hedge Order: SHORT {hedge['amount']:.2f} USDC of {hedge['asset']} "
-                f"(hedge for {hedge['opportunity_edge']:.1f}% edge opportunity)"
+                f"Hedge Order: SHORT {hedge_amount_usdc:.2f} USDC of {hedge['asset']} "
+                f"(hedge for {opp['edge_percentage']:.1f}% edge opportunity)"
             )
         
         return hedge_orders, total_hedge_allocation
@@ -245,7 +261,18 @@ class StrategyGrouper:
             processed.add(idx)
             
             asset = row['asset']
-            maturity = row.get('maturity_date', datetime.now())
+            maturity = row.get('maturity_date', None)
+            
+            # Parse maturity date if it's a string
+            if isinstance(maturity, str):
+                try:
+                    maturity = datetime.fromisoformat(maturity.replace('Z', '+00:00'))
+                except Exception:
+                    maturity = None
+            
+            # If no maturity, use current UTC time (timezone-aware)
+            if maturity is None:
+                maturity = datetime.now(datetime.now().astimezone().tzinfo)
             
             # Find complementary opportunities
             for idx2, row2 in opportunities_df.iterrows():
@@ -257,7 +284,19 @@ class StrategyGrouper:
                     continue
                 
                 # Check maturity compatibility (within 1 day)
-                maturity2 = row2.get('maturity_date', datetime.now())
+                maturity2 = row2.get('maturity_date', None)
+                
+                # Parse maturity2 date if it's a string
+                if isinstance(maturity2, str):
+                    try:
+                        maturity2 = datetime.fromisoformat(maturity2.replace('Z', '+00:00'))
+                    except Exception:
+                        maturity2 = None
+                
+                # If no maturity2, use current UTC time (timezone-aware)
+                if maturity2 is None:
+                    maturity2 = datetime.now(datetime.now().astimezone().tzinfo)
+                
                 if abs((maturity - maturity2).days) > 1:
                     continue
                 
@@ -424,24 +463,73 @@ class SmartContractDeployer:
             Transaction hash
         """
         try:
-            # Build transaction
+            # Convert dictionaries to tuples matching Solidity struct definitions
+            # PolymarketOrder: (marketId, isYes, amount, maxPriceBps)
+            # Note: Contract expects 'amount' not 'notionalBps', and no 'priority' field
+            pm_orders_tuples = [
+                (
+                    order['marketId'],
+                    order['isYes'],
+                    order['notionalBps'],  # Maps to 'amount' in contract
+                    order['maxPriceBps']
+                )
+                for order in strategy_def['polymarketOrders']
+            ]
+            
+            # HedgeOrder: (dex, asset, isLong, amount, maxSlippageBps)
+            # Note: Contract expects 'dex' as first field
+            hedge_orders_tuples = [
+                (
+                    'GMX',  # Default DEX
+                    order['asset'],
+                    order['isLong'],
+                    order['amount'],
+                    order['maxSlippageBps']
+                )
+                for order in strategy_def['hedgeOrders']
+            ]
+            
+            # Build transaction with EIP-1559 gas parameters
+            # Get current gas prices
+            latest_block = self.w3.eth.get_block('latest')
+            base_fee = latest_block.get('baseFeePerGas', 0)
+            
+            # Set max priority fee (tip to miners)
+            max_priority_fee = self.w3.eth.max_priority_fee
+            
+            # Set max fee per gas (base fee + priority fee + buffer)
+            # Add 20% buffer to handle base fee fluctuations
+            max_fee_per_gas = int(base_fee * 1.2) + max_priority_fee
+            
+            self.logger.debug(f"Gas pricing - Base: {base_fee}, Priority: {max_priority_fee}, Max: {max_fee_per_gas}")
+            
             tx_dict = self.contract.functions.createStrategy(
                 strategy_def['name'],
                 strategy_def['feeBps'],
                 strategy_def['maturityTs'],
-                strategy_def['polymarketOrders'],
-                strategy_def['hedgeOrders'],
+                pm_orders_tuples,
+                hedge_orders_tuples,
                 strategy_def['expectedProfitBps']
             ).build_transaction({
                 'from': self.account.address,
                 'nonce': self.w3.eth.get_transaction_count(self.account.address),
                 'gas': 500_000,
-                'gasPrice': self.w3.eth.gas_price,
+                'maxFeePerGas': max_fee_per_gas,
+                'maxPriorityFeePerGas': max_priority_fee,
             })
             
             # Sign and send
             signed_tx = self.w3.eth.account.sign_transaction(tx_dict, self.account.key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            # Handle different web3.py/eth-account versions
+            # Modern versions use raw_transaction (underscore), older used rawTransaction (camelCase)
+            if hasattr(signed_tx, 'raw_transaction'):
+                raw_tx = signed_tx.raw_transaction
+            elif hasattr(signed_tx, 'rawTransaction'):
+                raw_tx = signed_tx.rawTransaction
+            else:
+                # Fallback to dict access
+                raw_tx = signed_tx['raw_transaction'] if 'raw_transaction' in signed_tx else signed_tx['rawTransaction']
+            tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             
             self.logger.info(f"Deployed strategy: {tx_hash.hex()}")
             
@@ -509,7 +597,7 @@ class StrategyScanner:
         
         Args:
             assets: List of assets to scan (default: BTC, ETH)
-            mock_data: Use mock data for testing
+            mock_data: Use mock client instead of real API
             
         Returns:
             List of deployed strategies
@@ -517,7 +605,16 @@ class StrategyScanner:
         assets = assets or ['BTC', 'ETH']
         deployed_strategies = []
         
+        # Track deployed strategy signatures to prevent duplicates
+        deployed_signatures = set()
+        
         self.logger.info(f"Starting strategy scanning for assets: {assets}")
+        
+        # Use mock client if requested, otherwise use real API
+        if mock_data:
+            from polymarket_client import MockPolymarketAPIClient
+            self.market_data = PolymarketMarketData(MockPolymarketAPIClient())
+            self.logger.warning("⚠️  Using MOCK market data (no real API calls)")
         
         for asset in assets:
             self.logger.info(f"\n{'='*60}")
@@ -525,15 +622,14 @@ class StrategyScanner:
             self.logger.info(f"{'='*60}")
             
             try:
-                # Step 1: Fetch markets
-                if mock_data:
-                    markets = self._get_mock_markets(asset)
-                else:
-                    markets = await self.market_data.fetch_active_markets(asset)
+                # Step 1: Fetch markets from Polymarket API (no hardcoding!)
+                markets = await self.market_data.fetch_active_markets(asset)
                 
                 if not markets:
                     self.logger.warning(f"No markets found for {asset}")
                     continue
+                
+                self.logger.info(f"✅ Fetched {len(markets)} {asset} markets from Polymarket API")
                 
                 # Step 2: Price markets and detect inefficiencies
                 self.logger.info(f"Analyzing {len(markets)} {asset} markets for inefficiencies...")
@@ -550,7 +646,7 @@ class StrategyScanner:
                 opportunities = self.inefficiency_detector.get_opportunities(opportunities_df)
                 summary = self.inefficiency_detector.generate_summary(opportunities)
                 
-                self.logger.info(f"\nOpportunity Summary:")
+                self.logger.info(f"\n📊 Opportunity Summary for {asset}:")
                 for category, stats in summary.items():
                     if stats['count'] > 0:
                         self.logger.info(
@@ -562,16 +658,47 @@ class StrategyScanner:
                 opportunity_groups = self.strategy_grouper.group_opportunities(
                     opportunities_df
                 )
-                self.logger.info(f"\nFormed {len(opportunity_groups)} strategy groups")
+                self.logger.info(f"\n✅ Formed {len(opportunity_groups)} strategy groups")
+                
+                # Step 3.5: Deduplicate and cap strategies per asset
+                # Sort by total edge (best opportunities first)
+                opportunity_groups.sort(
+                    key=lambda g: sum(o['edge_percentage'] for o in g),
+                    reverse=True
+                )
+                
+                # Deduplicate by target price (keep only unique targets)
+                seen_targets = set()
+                unique_groups = []
+                
+                for group in opportunity_groups:
+                    # Get target price from first opportunity
+                    target_price = group[0].get('target_price', 0)
+                    
+                    # Skip if we've seen this target price
+                    if target_price in seen_targets:
+                        continue
+                    
+                    seen_targets.add(target_price)
+                    unique_groups.append(group)
+                
+                # Cap at max 3 strategies per asset
+                MAX_STRATEGIES_PER_ASSET = 3
+                unique_groups = unique_groups[:MAX_STRATEGIES_PER_ASSET]
+                
+                self.logger.info(
+                    f"📊 After deduplication and capping: {len(unique_groups)} unique strategies "
+                    f"(max {MAX_STRATEGIES_PER_ASSET} per asset)"
+                )
                 
                 # Step 4: Construct and deploy strategies
                 net_amount_usdc = 1000  # Default for strategy construction
                 strategy_id_start = 1
                 
-                for group_idx, opportunity_group in enumerate(opportunity_groups):
+                for group_idx, opportunity_group in enumerate(unique_groups):
                     strategy_id = strategy_id_start + group_idx
                     
-                    self.logger.info(f"\nConstructing strategy {strategy_id}...")
+                    self.logger.info(f"\n🏗️  Constructing strategy {strategy_id}...")
                     
                     strategy_def = self.strategy_constructor.construct_strategy(
                         opportunity_group,
@@ -579,64 +706,41 @@ class StrategyScanner:
                         net_amount_usdc
                     )
                     
+                    # Create a unique signature for this strategy to prevent duplicates
+                    # Use strategy name + maturity timestamp as signature
+                    strategy_signature = f"{strategy_def['name']}_{strategy_def['maturityTs']}"
+                    
+                    # Check if this strategy was already deployed successfully
+                    if strategy_signature in deployed_signatures:
+                        self.logger.info(f"⏭️  Skipping strategy {strategy_id} - already deployed successfully")
+                        continue
+                    
                     # Deploy to contract
-                    self.logger.info(f"Deploying strategy {strategy_id} to smart contract...")
+                    self.logger.info(f"📤 Deploying strategy {strategy_id} to smart contract...")
                     
                     try:
                         tx_hash = await self.contract_deployer.deploy_strategy(strategy_def)
                         strategy_def['txHash'] = tx_hash
                         deployed_strategies.append(strategy_def)
                         
+                        # Mark this strategy as deployed
+                        deployed_signatures.add(strategy_signature)
+                        self.logger.info(f"✅ Successfully deployed strategy {strategy_id}")
+                        
                     except Exception as e:
                         self.logger.error(f"Failed to deploy strategy: {e}")
+                        # Don't add to deployed_signatures since it failed
                         continue
             
             except Exception as e:
-                self.logger.error(f"Error scanning {asset}: {e}")
+                self.logger.error(f"Error scanning {asset}: {e}", exc_info=True)
                 continue
         
         self.logger.info(f"\n{'='*60}")
-        self.logger.info(f"Scanning complete. Deployed {len(deployed_strategies)} strategies")
+        self.logger.info(f"✅ Scanning complete. Deployed {len(deployed_strategies)} strategies")
         self.logger.info(f"{'='*60}")
         
         return deployed_strategies
-    
-    def _get_mock_markets(self, asset: str) -> List[Dict]:
-        """Get mock market data for testing"""
-        if asset == "BTC":
-            return [
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_200k',
-                    'current_price': 107127,
-                    'target_price': 200000,
-                    'market_price': 0.007,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_150k',
-                    'current_price': 107127,
-                    'target_price': 150000,
-                    'market_price': 0.025,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-                {
-                    'asset': 'BTC',
-                    'market_id': 'mock_btc_110k',
-                    'current_price': 107127,
-                    'target_price': 110000,
-                    'market_price': 0.18,
-                    'days_to_expiry': 13,
-                    'volatility': 0.55,
-                    'maturity_date': datetime.now() + timedelta(days=13)
-                },
-            ]
-        return []
 
 
 # Example usage

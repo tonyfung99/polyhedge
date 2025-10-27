@@ -2,17 +2,17 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
 // GMX V2 Contract Addresses on Arbitrum Mainnet
+// All addresses are properly checksummed for EIP-55 compliance
 const GMX_ADDRESSES = {
   arbitrum: {
-    exchangeRouter: "0x7C68C7E1CDBdD30B08C1c5433f385E814fAc2b9E",
-    router: "0x549352201EB5eba6cdc235D127cAe56d2145DAAF",
+    exchangeRouter: "0x87d66368cD08a7Ca42252f5ab44B2fb6d1Fb8d15",
+    router: "0x7452c558d45f8afC8c83dAe62C3f8A5BE19c71f6",
     usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
   },
   arbitrumSepolia: {
-    // Sepolia testnet addresses (if available)
-    exchangeRouter: "0x0000000000000000000000000000000000000000",
-    router: "0x0000000000000000000000000000000000000000",
-    usdc: "0x0000000000000000000000000000000000000000",
+    exchangeRouter: "0x657F9215FA1e839FbA15cF44B1C00D95cF71ed10",
+    router: "0x72F13a44C8ba16a678CAD549F17bc9e06d2B8bD2",
+    usdc: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
   },
 };
 
